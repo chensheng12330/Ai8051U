@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "set_pwm.h": "c",
+        "stdarg.h": "c",
+        "set_io.h": "c",
+        "STDARG.H": "cpp"
+    }
+}

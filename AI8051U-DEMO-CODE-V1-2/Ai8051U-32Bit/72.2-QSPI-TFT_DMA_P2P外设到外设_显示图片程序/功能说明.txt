@@ -1,0 +1,42 @@
+/*************  功能说明    **************
+
+本例程基于AI8051U为主控芯片的实验箱进行编写测试。
+
+使用Keil C251编译器，Memory Model推荐设置XSmall模式，默认定义变量在edata，单时钟存取访问速度快。
+
+edata建议保留1K给堆栈使用，空间不够时可将大数组、不常用变量加xdata关键字定义到xdata空间。
+
+QSPI DMA + LCM DMA驱动液晶屏程序
+
+先用71号范例将图片保存到Flash里。(下载时务必去掉“下次下载用户程序时擦除用户EEPROM区”的勾选)
+
+显示时QSPI 读取Flash图片数据，通过P2P DMA直接发送数据到LCM显示图片。
+
+显示图片分辨率:320x240，若图片高320、宽240，可修改"lcm.h"里"USE_HORIZONTAL"定义为竖屏(0)；
+若图片高240、宽320，可修改"lcm.h"里"USE_HORIZONTAL"定义为横屏(1)。
+
+QSPI读取Flash与LCM显示DMA的数据长度设置51200字节。
+
+8bit I8080模式, P2口接数据线
+
+LCD_RS = P4^5;         //数据/命令切换
+LCD_WR = P3^6;         //写控制
+LCD_RD = P3^7;         //读控制
+LCD_CS = P0^5;//P5^3;  //片选
+LCD_RESET = P4^7;      //复位
+
+QSPI Flash 接口：
+QSPI_CS      = P4^0;
+QSPI_SDI_IO0 = P4^1;
+QSPI_SDO_IO1 = P4^2;
+QSPI_SCK     = P4^3;
+QSPI_WP_IO2  = P5^2;
+QSPI_HLD_IO3 = P5^3;
+
+UART 接口：
+RX = P3^0
+TX = P3^1
+
+下载时, 选择时钟 40MHz (频率定义参数在system.h修改).
+
+******************************************/

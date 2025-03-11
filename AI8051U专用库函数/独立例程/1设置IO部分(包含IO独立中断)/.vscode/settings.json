@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "set_io.h": "c",
+        "ai8051u.h": "c",
+        "stdarg.h": "c",
+        "STDARG.H": "cpp",
+        "io_interrupt.h": "c",
+        "AI8051U.H": "cpp",
+        "type_traits": "c",
+        "xtr1common": "c",
+        "xutility": "c",
+        "io_int.h": "c",
+        "PUTCHAR.C": "cpp"
+    },
+    "commentTranslate.source": "Bing"
+}
