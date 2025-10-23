@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "set_adc.h": "c",
+        "ai8051u.h": "c",
+        "AI8051U.H": "cpp",
+        "set_uart.h": "c"
+    }
+}

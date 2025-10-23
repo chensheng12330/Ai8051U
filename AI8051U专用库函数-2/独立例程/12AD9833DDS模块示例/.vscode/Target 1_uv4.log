@@ -1,0 +1,12 @@
+Build target 'Target 1'
+User command #1: .\Auto_Keil.exe
+正在处理文件: .\AD9833.uvproj
+文件无需更改: .\AD9833.uvproj
+Hex文件已经重定向到Hex File文件夹 
+优化完成!
+compiling main.c...
+linking...
+Program Size: data=8.3 edata+hdata=425 xdata=672 const=668 code=9246
+creating hex file from ".\Hex File\AD9833"...
+".\Hex File\AD9833" - 0 Error(s), 0 Warning(s).
+Build Time Elapsed:  00:00:00

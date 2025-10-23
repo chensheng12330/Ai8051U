@@ -1,0 +1,12 @@
+Build target 'Target 1'
+User command #1: C:\Users\Administrator\Desktop\AI8051U-DEMO-CODE-V1.2库\AI8051U专用库函数\独立例程\10协程应用案例集锦\10b 驱动蜂鸣器做变调歌曲\Auto_Keil.exe
+正在处理文件: .\Beep_TEST.uvproj
+文件无需更改: .\Beep_TEST.uvproj
+Hex文件已经重定向到Hex File文件夹 
+优化完成!
+compiling main.c...
+linking...
+Program Size: data=8.3 edata+hdata=486 xdata=192 const=215 code=9580
+creating hex file from ".\Hex File\Beep_TEST"...
+".\Hex File\Beep_TEST" - 0 Error(s), 0 Warning(s).
+Build Time Elapsed:  00:00:01

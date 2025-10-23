@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "set_uart.h": "c",
+        "set_io.h": "c",
+        "stdarg.h": "c",
+        "STDARG.H": "cpp",
+        "ai8051u.h": "c",
+        "io_int.h": "c",
+        "math.h": "c",
+        "stdio.h": "c",
+        "STDIO.H": "cpp",
+        "MATH.H": "cpp",
+        "AI8051U.H": "cpp",
+        "string.h": "c",
+        "STRING.H": "cpp"
+    },
+    "commentTranslate.source": "Bing"
+}
