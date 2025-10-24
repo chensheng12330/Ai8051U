@@ -1,0 +1,45 @@
+{
+    "configurations": [
+        {
+            "name": "AI8051U",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/Ai8051U-32Bit/COMM",
+                "${workspaceFolder}/Ai8051U-32Bit/27-通过定时器周期性调度任务综合例程，简单实用的任务调度系统，推荐",
+                "${workspaceFolder}/Ai8051U-32Bit/27-通过定时器周期性调度任务综合例程，简单实用的任务调度系统，推荐/Sources/inc",
+                "${workspaceFolder}/Ai8051U-32Bit/27-通过定时器周期性调度任务综合例程，简单实用的任务调度系统，推荐/Sources/src",
+                "${workspaceFolder}/Ai8051U-32Bit/27-通过定时器周期性调度任务综合例程，简单实用的任务调度系统，推荐/Sources/isr"
+            ],
+            "defines": [
+                "MAIN_Fosc=48000000UL",
+                "__C251__",
+                "sfr=volatile unsigned char",
+                "sbit=volatile unsigned char",
+                "bit=unsigned char",
+                "code=const",
+                "data=",
+                "idata=",
+                "xdata=",
+                "pdata=",
+                "edata=",
+                "_nop_()=",
+                "interrupt=",
+                "using="
+            ],
+            "compilerPath": "",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/Ai8051U-32Bit/COMM",
+                    "${workspaceFolder}/Ai8051U-32Bit/27-通过定时器周期性调度任务综合例程，简单实用的任务调度系统，推荐"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "${workspaceFolder}/.vscode/.browse.vc.db"
+            }
+        }
+    ],
+    "version": 4
+}
+

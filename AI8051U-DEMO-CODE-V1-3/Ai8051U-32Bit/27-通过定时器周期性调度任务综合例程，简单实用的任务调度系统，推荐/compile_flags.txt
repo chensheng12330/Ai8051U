@@ -1,0 +1,23 @@
+-std=c99
+-Wall
+-I.
+-ISources/inc
+-ISources/src
+-ISources/isr
+-I../../COMM
+-DMAIN_Fosc=48000000UL
+-D__C251__
+-Dsfr=volatile unsigned char
+-Dsbit=volatile unsigned char
+-Dbit=unsigned char
+-Dcode=const
+-Ddata=
+-Didata=
+-Dxdata=
+-Dpdata=
+-Dedata=
+-D_nop_()=
+-Dinterrupt=
+-Dusing=
+
+
