@@ -1,0 +1,221 @@
+C251 COMPILER V5.60.0,  main                                                               01/04/25  23:52:00  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE main
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE main.c XSMALL INTR2 BROWSE DEBUG TABS(2) 
+
+stmt  level    source
+
+    1          /*---------------------------------------------------------------------*/
+    2          /* --- Web: www.STCAI.com ---------------------------------------------*/
+    3          /*---------------------------------------------------------------------*/
+    4          
+    5          /*************  功能说明    **************
+    6          
+    7          本例程基于AI8051U为主控芯片的实验箱进行编写测试.
+    8          
+    9          使用Keil C251编译器，Memory Model推荐设置XSmall模式，默认定义变量在edata，单时钟存取访问速度快。
+   10          
+   11          edata建议保留1K给堆栈使用，空间不够时可将大数组、不常用变量加xdata关键字定义到xdata空间。
+   12          
+   13          用STC的MCU的IO方式控制74HC595驱动8位数码管。
+   14          
+   15          显示效果为: 数码时钟.
+   16          
+   17          使用Timer0的16位自动重装来产生1ms节拍,程序运行于这个节拍下, 用户修改MCU主时钟频率时,自动定时于1ms.
+   18          
+   19          下载时, 选择时钟 24MHZ (用户可自行修改频率).
+   20          
+   21          ******************************************/
+   22          
+   23          #include "..\..\comm\AI8051U.h"
+   24          #include "stdio.h"
+   25          #include "intrins.h"
+   26          
+   27          typedef   unsigned char u8;
+   28          typedef   unsigned int  u16;
+   29          typedef   unsigned long u32;
+   30          
+   31          #define MAIN_Fosc        24000000UL
+   32          
+   33          //========================================================================== 
+   34          
+   35          #define Timer0_Reload   (65536UL -(MAIN_Fosc / 1000))       //Timer 0 中断频率, 1000次/秒
+   36          
+   37          #define DIS_DOT     0x20
+   38          #define DIS_BLACK   0x10
+   39          #define DIS_        0x11
+   40          
+   41          /*************  本地常量声明    **************/
+   42          u8 code t_display[]={                       //标准字库
+   43          //   0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+   44              0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71,
+   45          //black  -     H    J    K    L    N    o   P    U     t    G    Q    r   M    y
+   46              0x00,0x40,0x76,0x1E,0x70,0x38,0x37,0x5C,0x73,0x3E,0x78,0x3d,0x67,0x50,0x37,0x6e,
+   47              0xBF,0x86,0xDB,0xCF,0xE6,0xED,0xFD,0x87,0xFF,0xEF,0x46};    //0. 1. 2. 3. 4. 5. 6. 7. 8. 9. -1
+   48          
+   49          u8 code T_COM[]={0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};      //位码
+   50          
+   51          /*************  IO口定义    **************/
+   52          sbit    P_HC595_SER   = P3^4;   //pin 14    SER     data input
+   53          sbit    P_HC595_RCLK  = P3^5;   //pin 12    RCLk    store (latch) clock
+   54          sbit    P_HC595_SRCLK = P3^2;   //pin 11    SRCLK   Shift data clock
+   55          
+   56          /*************  本地变量声明    **************/
+   57          
+   58          u8  LED8[8];        //显示缓冲
+   59          u8  display_index;  //显示位索引
+C251 COMPILER V5.60.0,  main                                                               01/04/25  23:52:00  PAGE 2   
+
+   60          bit B_1ms;          //1ms标志
+   61          
+   62          u8  hour,minute,second;
+   63          u16 msecond;
+   64          
+   65          
+   66          /*************  本地函数声明    **************/
+   67          
+   68          
+   69          /****************  外部函数声明和外部变量声明 *****************/
+   70          
+   71          
+   72          /********************** 显示时钟函数 ************************/
+   73          void DisplayRTC(void)
+   74          {
+   75   1          if(hour >= 10)  LED8[0] = hour / 10;
+   76   1          else            LED8[0] = DIS_BLACK;
+   77   1          LED8[1] = hour % 10;
+   78   1          LED8[2] = DIS_;
+   79   1          LED8[3] = minute / 10;
+   80   1          LED8[4] = minute % 10;
+   81   1          LED8[5] = DIS_;
+   82   1          LED8[6] = second / 10;
+   83   1          LED8[7] = second % 10;
+   84   1      }
+   85          
+   86          /********************** RTC演示函数 ************************/
+   87          void RTC(void)
+   88          {
+   89   1          if(++second >= 60)
+   90   1          {
+   91   2              second = 0;
+   92   2              if(++minute >= 60)
+   93   2              {
+   94   3                  minute = 0;
+   95   3                  if(++hour >= 24)    hour = 0;
+   96   3              }
+   97   2          }
+   98   1      }
+   99          
+  100          /******************** 主函数 **************************/
+  101          void main(void)
+  102          {
+  103   1          u8  i,k;
+  104   1          
+  105   1          WTST = 0;  //设置程序指令延时参数，赋值为0可将CPU执行指令的速度设置为最快
+  106   1          EAXFR = 1; //扩展寄存器(XFR)访问使能
+  107   1          CKCON = 0; //提高访问XRAM速度
+  108   1      
+  109   1          P0M1 = 0x00;   P0M0 = 0x00;   //设置为准双向口
+  110   1          P1M1 = 0x00;   P1M0 = 0x00;   //设置为准双向口
+  111   1          P2M1 = 0x00;   P2M0 = 0x00;   //设置为准双向口
+  112   1          P3M1 = 0x00;   P3M0 = 0x00;   //设置为准双向口
+  113   1          P4M1 = 0x00;   P4M0 = 0x00;   //设置为准双向口
+  114   1          P5M1 = 0x00;   P5M0 = 0x00;   //设置为准双向口
+  115   1          P6M1 = 0x00;   P6M0 = 0x00;   //设置为准双向口
+  116   1          P7M1 = 0x00;   P7M0 = 0x00;   //设置为准双向口
+  117   1      
+  118   1          T0x12 = 1;  //Timer0 set as 1T, 16 bits timer auto-reload, 
+  119   1          TH0 = (u8)(Timer0_Reload / 256);
+  120   1          TL0 = (u8)(Timer0_Reload % 256);
+  121   1          ET0 = 1;    //Timer0 interrupt enable
+  122   1          TR0 = 1;    //Tiner0 run
+  123   1          EA = 1;     //打开总中断
+  124   1          
+  125   1          display_index = 0;
+C251 COMPILER V5.60.0,  main                                                               01/04/25  23:52:00  PAGE 3   
+
+  126   1          hour   = 11;    //初始化时间值
+  127   1          minute = 59;
+  128   1          second = 58;
+  129   1          RTC();
+  130   1          DisplayRTC();
+  131   1          
+  132   1      //  for(i=0; i<8; i++)  LED8[i] = DIS_BLACK;    //上电消隐
+  133   1          for(i=0; i<8; i++)  LED8[i] = i;    //显示01234567
+  134   1          k = 0;
+  135   1      
+  136   1          while(1)
+  137   1          {
+  138   2              if(B_1ms)   //1ms到
+  139   2              {
+  140   3                  B_1ms = 0;
+  141   3                  if(++msecond >= 1000)   //1秒到
+  142   3                  {
+  143   4      //                P42 = !P42;
+  144   4                      msecond = 0;
+  145   4                      RTC();
+  146   4                      DisplayRTC();
+  147   4                  }
+  148   3              }
+  149   2          }
+  150   1      }
+  151          
+  152          /**************** 向HC595发送一个字节函数 ******************/
+  153          void Send_595(u8 dat)
+  154          {
+  155   1          u8  i;
+  156   1          for(i=0; i<8; i++)
+  157   1          {
+  158   2              dat <<= 1;
+  159   2              P_HC595_SER   = CY;
+  160   2              P_HC595_SRCLK = 1;
+  161   2              P_HC595_SRCLK = 0;
+  162   2          }
+  163   1      }
+  164          
+  165          /********************** 显示扫描函数 ************************/
+  166          void DisplayScan(void)
+  167          {
+  168   1          Send_595(t_display[LED8[display_index]]);   //输出段码
+  169   1          Send_595(~T_COM[display_index]);            //输出位码
+  170   1      
+  171   1          P_HC595_RCLK = 1;
+  172   1          P_HC595_RCLK = 0;
+  173   1          if(++display_index >= 8)    display_index = 0;  //8位结束回0
+  174   1      }
+  175          
+  176          /********************** Timer0 1ms中断函数 ************************/
+  177          void timer0 (void) interrupt 1
+  178          {
+  179   1          DisplayScan();  //1ms扫描显示一位
+  180   1          B_1ms = 1;      //1ms标志
+  181   1      
+  182   1      }
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       489     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+C251 COMPILER V5.60.0,  main                                                               01/04/25  23:52:00  PAGE 4   
+
+  xdata-const size     =    ------     ------
+  edata size           =        14     ------
+  bit size             =         1     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =    ------     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
