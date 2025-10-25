@@ -185,7 +185,7 @@ void INT3_ISR_Handler(void) interrupt INT3_VECTOR
 //========================================================================
 void Sample_intKey(void)
 {
-    u8 key_pin_state;
+    u8 key_pin_state = 1;  // 默认高电平（未按下状态）
     
     // 清除上次的事件
     intKeyEvent = KEY_EVENT_NONE;
