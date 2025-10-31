@@ -21,6 +21,12 @@ void APP_config(void)
 #if ENABLE_INT_KEY
 	intKey_init();  // 初始化外部中断按键模块
 #endif
+
+	// 初始化摩托车智能灯组系统
+	Motorcycle_Light_System_Init();
+
+	// 更新GPIO配置
+	GPIO_Config_Update();
 }
 
 //========================================================================

@@ -64,10 +64,22 @@ int main(void)
 #if ENABLE_INT_KEY
     TaskMonitor_SetPeriod(5, 10);     // Sample_intKey, 10ms
 #endif
-    TaskMonitor_SetPeriod(6, 1000);   // CPUMonitor_Calculate, 1000ms
-    TaskMonitor_SetPeriod(7, 5000);   // TaskMonitor_PrintReport, 5000ms
-    TaskMonitor_SetPeriod(8, 5000);   // CPUMonitor_PrintReport, 5000ms
-    TaskMonitor_SetPeriod(9, 1);      // Sample_USB_Debug, 1ms
+    // 摩托车灯组系统任务
+    TaskMonitor_SetPeriod(6, 1);      // Sample_Vehicle_Signal_Process, 1ms
+    TaskMonitor_SetPeriod(7, 2);      // Sample_WS2812_DMA_Control, 2ms
+    TaskMonitor_SetPeriod(8, 5);      // Sample_Button_Process, 5ms
+    TaskMonitor_SetPeriod(9, 10);     // Sample_Sensor_Read, 10ms
+    TaskMonitor_SetPeriod(10, 20);    // Sample_Light_Effect_Calculate, 20ms
+    TaskMonitor_SetPeriod(11, 50);    // Sample_Audio_Process, 50ms
+    TaskMonitor_SetPeriod(12, 100);   // Sample_Status_Display, 100ms
+    TaskMonitor_SetPeriod(13, 500);   // Sample_Debug_Output, 500ms
+    TaskMonitor_SetPeriod(14, 100);   // System_State_Machine, 100ms
+
+    // 监控插件任务
+    TaskMonitor_SetPeriod(15, 1000);  // CPUMonitor_Calculate, 1000ms
+    TaskMonitor_SetPeriod(16, 5000);  // TaskMonitor_PrintReport, 5000ms
+    TaskMonitor_SetPeriod(17, 5000);  // CPUMonitor_PrintReport, 5000ms
+    TaskMonitor_SetPeriod(18, 1);     // Sample_USB_Debug, 1ms
 
     //========================================================================
     // 优化6：初始化CPUMonitor插件（CPU占用率监控）
