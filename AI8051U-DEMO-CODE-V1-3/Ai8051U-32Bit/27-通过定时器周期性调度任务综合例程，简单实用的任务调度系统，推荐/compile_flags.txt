@@ -5,6 +5,7 @@
 -ISources/src
 -ISources/isr
 -I../../COMM
+-IUSBHID
 -DMAIN_Fosc=48000000UL
 -D__C251__
 -Dsfr=volatile unsigned char

@@ -16,6 +16,9 @@
 #include "app_intKey.h"
 #endif
 
+// USB HID 调试任务
+void Sample_USB_Debug(void);
+
 void APP_config(void);
 
 #endif

@@ -4,12 +4,18 @@
 
 #include "Task.h"
 #include "System_init.h"
+#include "../USBHID/usb.h"
 
 //========================================================================
 // 集成独立监控插件（可选）
 //========================================================================
 #include "TaskMonitor/TaskMonitor.h"   // 任务性能监控
 #include "CPUMonitor/CPUMonitor.h"     // CPU占用率监控
+
+//USB调试及复位所需定义
+char *USER_DEVICEDESC = NULL;
+char *USER_PRODUCTDESC = NULL;
+char *USER_STCISPCMD = "@STCISP#";                      //设置自动复位到ISP区的用户接口命令
 
 /*************	功能说明	**************
 
@@ -29,19 +35,20 @@
 ******************************************/
 
 //========================================================================
-// 函数: void main(void)
+// 函数: int main(void)
 // 描述: 主函数程序.
 // 参数: None.
-// 返回: None.
+// 返回: int.
 // 版本: V1.0, 2022-05-26
 //========================================================================
-void main(void)
+int main(void)
 {
     WTST = 0;  //设置程序指令延时参数，赋值为0可将CPU执行指令的速度设置为最快
     EAXFR = 1; //扩展寄存器(XFR)访问使能
     CKCON = 0; //提高访问XRAM速度
 
     SYS_Init();
+    usb_init();  //USB初始化
 
     //========================================================================
     // 优化4：初始化TaskMonitor插件（任务性能监控）
@@ -57,6 +64,10 @@ void main(void)
 #if ENABLE_INT_KEY
     TaskMonitor_SetPeriod(5, 10);     // Sample_intKey, 10ms
 #endif
+    TaskMonitor_SetPeriod(6, 1000);   // CPUMonitor_Calculate, 1000ms
+    TaskMonitor_SetPeriod(7, 5000);   // TaskMonitor_PrintReport, 5000ms
+    TaskMonitor_SetPeriod(8, 5000);   // CPUMonitor_PrintReport, 5000ms
+    TaskMonitor_SetPeriod(9, 1);      // Sample_USB_Debug, 1ms
 
     //========================================================================
     // 优化6：初始化CPUMonitor插件（CPU占用率监控）
@@ -90,7 +101,15 @@ void main(void)
         // 必须在1秒内至少执行一次，否则系统自动复位
         //====================================================================
         WDT_CONTR |= 0x10;  // 清除看门狗计数器
-        
+
+        //====================================================================
+        // USB 数据接收处理
+        //====================================================================
+        if (bUsbOutReady)
+        {
+            usb_OUT_done(); //接收应答（固定格式）
+        }
+
         Task_Pro_Handler_Callback();
         
         //====================================================================
@@ -99,4 +118,6 @@ void main(void)
         //====================================================================
         CPU_MONITOR_IDLE_TICK();
     }
+
+    return 0; // 永远不会执行到这里
 }

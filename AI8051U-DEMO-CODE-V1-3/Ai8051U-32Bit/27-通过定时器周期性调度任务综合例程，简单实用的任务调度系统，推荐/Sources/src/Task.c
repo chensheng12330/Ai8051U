@@ -32,6 +32,12 @@ static TASK_COMPONENTS Task_Comps[]=
     {0, 1000,1000,CPUMonitor_Calculate},     /* CPU监控：每秒计算占用率 */
     {0, 5000,5000,TaskMonitor_PrintReport},  /* 任务监控：每5秒打印报告 */
     {0, 5000,5000,CPUMonitor_PrintReport},   /* CPU监控：每5秒打印报告 */
+
+    //========================================================================
+    // USB HID 调试任务
+    //========================================================================
+    {0, 1,   1,   Sample_USB_Debug},         /* USB调试：每1ms执行一次 */
+
     /* Add new task here */
 };
 
