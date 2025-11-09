@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "ai8051u.h": "c",
+        "AI8051U.H": "cpp",
+        "set_eeprom.h": "c",
+        "set_uart.h": "c",
+        "xutility": "c"
+    }
+}

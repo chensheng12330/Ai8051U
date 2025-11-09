@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "set_uart.h": "c",
+        "set_spi.h": "c",
+        "ai8051u.h": "c",
+        "AI8051U.H": "cpp",
+        "string.h": "c",
+        "STRING.H": "cpp",
+        "stdio.h": "c",
+        "STDIO.H": "cpp",
+        "math.h": "c",
+        "stdarg.h": "c",
+        "STDARG.H": "cpp"
+    }
+}

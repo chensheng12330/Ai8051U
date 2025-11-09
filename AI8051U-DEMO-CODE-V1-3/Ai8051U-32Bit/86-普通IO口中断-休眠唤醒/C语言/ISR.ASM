@@ -1,0 +1,22 @@
+// ISR.ASM 
+//将下面的代码保存为 ISR.ASM，然后将文件加入到项目中即可
+	CSEG AT 012BH ;P0 口中断入口地址
+	JMP PXINT_ISR
+	CSEG AT 0133H ;P1 口中断入口地址
+	JMP PXINT_ISR
+	CSEG AT 013BH ;P2 口中断入口地址
+	JMP PXINT_ISR
+	CSEG AT 0143H ;P3 口中断入口地址
+	JMP PXINT_ISR
+	CSEG AT 014BH ;P4 口中断入口地址
+	JMP PXINT_ISR
+	CSEG AT 0153H ;P5 口中断入口地址
+	JMP PXINT_ISR
+	CSEG AT 015BH ;P6 口中断入口地址
+	JMP PXINT_ISR
+	CSEG AT 0163H ;P7 口中断入口地址
+	JMP PXINT_ISR
+	
+PXINT_ISR: 
+	JMP 006BH ;借用 13 号中断的入口地址
+	END

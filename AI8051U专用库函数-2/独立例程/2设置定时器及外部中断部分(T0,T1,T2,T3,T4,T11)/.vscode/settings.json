@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "set_int.h": "c",
+        "bit": "c",
+        "compare": "c",
+        "cstddef": "c",
+        "limits": "c",
+        "type_traits": "c",
+        "xmemory": "c",
+        "xtree": "c",
+        "xutility": "c",
+        "stdarg.h": "c",
+        "ai8051u.h": "c",
+        "STDARG.H": "cpp",
+        "set_timer.h": "c",
+        "cstdlib": "c",
+        "math.h": "c",
+        "set_io.h": "c",
+        "stdio.h": "c",
+        "STDIO.H": "cpp",
+        "AI8051U.H": "cpp"
+    },
+    "commentTranslate.source": "Bing"
+}

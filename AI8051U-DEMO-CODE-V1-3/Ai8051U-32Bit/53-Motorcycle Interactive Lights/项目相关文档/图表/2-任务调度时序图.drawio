@@ -1,0 +1,226 @@
+<mxfile host="65bd71144e">
+    <diagram name="任务调度时序图" id="timing-diagram-complete">
+        <mxGraphModel dx="467" dy="602" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1400" background="#ffffff" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="AI8051U 任务调度时序图 - 多任务周期调度" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=22;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="30" width="800" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="timeline-title" value="时间轴 (ms)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="120" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="t0" value="0" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1" value="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="t2" value="2" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="t10" value="10" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="t20" value="20" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="t100" value="100" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1540" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="t300" value="300" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1690" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="t500" value="500" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1840" y="160" width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="int-label" value="Timer0中断&lt;br&gt;(1ms周期)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="220" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="int0" value="▼" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontColor=#000000;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="200" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="int1" value="▼" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontColor=#000000;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="200" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="int2" value="▼" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontColor=#000000;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="200" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="int-dots1" value="..." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="200" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="int10" value="▼" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontColor=#000000;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="200" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="int-dots2" value="..." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="200" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="int300" value="▼" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontColor=#000000;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="1690" y="200" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="int500" value="▼" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontColor=#000000;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="1840" y="200" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="mark-text" value="标记" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="235" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="task1-label" value="任务1: Sample_Display (1ms周期)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="300" width="300" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1e0" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="300" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1e1" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="300" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1e2" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="300" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1dots1" value="..." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="300" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1e10" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="300" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1dots2" value="..." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="300" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1e300" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1690" y="300" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t1e500" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1840" y="300" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="task2-label" value="任务2: Sample_MatrixKey (10ms周期)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="380" width="350" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="t2e10" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="380" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t2e20" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="380" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t2e30" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="990" y="380" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t2dots" value="..." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="380" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t2e500" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1790" y="380" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="task3-label" value="任务3: Sample_adcKey (10ms周期)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="460" width="330" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="t3e10" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="460" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t3e20" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="460" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t3e30" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="990" y="460" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t3dots" value="..." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="460" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="t3e500" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1790" y="460" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="task4-label" value="任务4: Sample_NTC (300ms周期)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="540" width="320" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="t4e300" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1690" y="540" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="task5-label" value="任务5: Sample_RTC (500ms周期)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="620" width="310" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="t5e500" value="执行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1840" y="620" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="grid0" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=1;strokeColor=#CCCCCC;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="260" y="680" as="sourcePoint"/>
+                        <mxPoint x="260" y="190" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="grid10" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=1;strokeColor=#CCCCCC;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="660" y="680" as="sourcePoint"/>
+                        <mxPoint x="660" y="190" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="grid300" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=1;strokeColor=#CCCCCC;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1710" y="680" as="sourcePoint"/>
+                        <mxPoint x="1710" y="190" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="grid500" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=1;strokeColor=#CCCCCC;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1860" y="680" as="sourcePoint"/>
+                        <mxPoint x="1860" y="190" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="main-loop-box" value="主循环执行顺序 (每次循环):&lt;br&gt;1. 检查任务1 → 执行&lt;br&gt;2. 检查任务2 → 执行/跳过&lt;br&gt;3. 检查任务3 → 执行/跳过&lt;br&gt;4. 检查任务4 → 执行/跳过&lt;br&gt;5. 检查任务5 → 执行/跳过" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#000000;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#000000;align=left;verticalAlign=top;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="750" width="350" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="perf-box" value="性能指标:&lt;br&gt;• 中断周期: 1ms (1000次/秒)&lt;br&gt;• 中断执行时间: ~50μs (5%)&lt;br&gt;• Task1执行: ~200μs/次&lt;br&gt;• Task2/3执行: ~150μs/次&lt;br&gt;• Task4/5执行: ~100μs/次&lt;br&gt;• CPU占用率: 5-15%&lt;br&gt;• 响应延迟: &amp;lt;2ms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#000000;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#000000;align=left;verticalAlign=top;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="750" width="330" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-box" value="图例说明" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=15;fontStyle=1;fontColor=#000000;align=center;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="750" width="280" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend1-block" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="800" width="50" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend1-text" value="任务1 (1ms周期)" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="915" y="800" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend2-block" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="840" width="50" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend2-text" value="任务2 (10ms周期)" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="915" y="840" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend3-block" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="880" width="50" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend3-text" value="任务3 (10ms周期)" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="915" y="880" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend4-block" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="920" width="50" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend4-text" value="任务4 (300ms周期)" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="915" y="920" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend5-symbol" value="▼" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontColor=#000000;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="960" width="50" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend5-text" value="Timer0中断触发点" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="915" y="960" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="note-box" value="关键特性:&lt;br&gt;✓ 不同任务设置不同周期&lt;br&gt;✓ 任务1最快(1ms)，保证显示刷新&lt;br&gt;✓ 按键任务(10ms)，满足消抖需求&lt;br&gt;✓ 温度/时钟任务慢(300/500ms)&lt;br&gt;&amp;nbsp;&amp;nbsp;节省CPU资源&lt;br&gt;✓ 所有任务自动调度，无需干预" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#000000;align=left;verticalAlign=top;spacing=10;" parent="1" vertex="1">
+                    <mxGeometry x="1170" y="750" width="330" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="time-note-10" value="10ms时：&lt;br&gt;Task1, 2, 3&lt;br&gt;同时就绪" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="510" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="time-note-300" value="300ms时：&lt;br&gt;所有任务&lt;br&gt;都执行" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1640" y="560" width="90" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="time-note-500" value="500ms时：&lt;br&gt;所有5个任务&lt;br&gt;全部就绪" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1790" y="660" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="timeline-h" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#000000;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="240" y="170" as="sourcePoint"/>
+                        <mxPoint x="1920" y="170" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

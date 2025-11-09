@@ -1,0 +1,12 @@
+Build target 'Target 1'
+User command #1: C:\Users\Administrator\Desktop\AI8051U-DEMO-CODE-V1.2库\AI8051U专用库函数\独立例程\7使用PWM(基础的PWM部分控制)\Auto_Keil.exe
+正在处理文件: .\PWM_Test.uvproj
+文件无需更改: .\PWM_Test.uvproj
+Hex文件已经重定向到Hex File文件夹 
+优化完成!
+compiling main.c...
+linking...
+Program Size: data=8.0 edata+hdata=478 xdata=40 const=294 code=6850
+creating hex file from ".\Hex File\PWM_Test"...
+".\Hex File\PWM_Test" - 0 Error(s), 0 Warning(s).
+Build Time Elapsed:  00:00:01

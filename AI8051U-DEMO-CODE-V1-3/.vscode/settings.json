@@ -1,0 +1,43 @@
+{
+    "files.associations": {
+        "*.h": "c",
+        "*.c": "c",
+        "*.inc": "asm",
+        "ai8051u.h": "c"
+    },
+    // 禁用 Microsoft C/C++ 扩展（因为许可限制）
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.autocomplete": "disabled",
+    "C_Cpp.errorSquiggles": "disabled",
+    
+    // 启用 clangd（开源替代方案）
+    "clangd.arguments": [
+        "--background-index",
+        "--clang-tidy",
+        "--completion-style=detailed",
+        "--header-insertion=never",
+        "--log=error"
+    ],
+    "clangd.fallbackFlags": [
+        "-std=c99"
+    ],
+    
+    "editor.formatOnSave": false,
+    "files.exclude": {
+        "**/.git": true,
+        "**/Listings": true,
+        "**/Objects": true,
+        "**/*.uvgui.*": true,
+        "**/*.bak": true,
+        "**/.cache": true
+    },
+    "search.exclude": {
+        "**/Objects": true,
+        "**/Listings": true,
+        "**/*.hex": true,
+        "**/*.lst": true,
+        "**/*.map": true,
+        "**/.cache": true
+    }
+}
+

@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "*.c": "c",
+        "*.h": "c",
+        "set_pwm.h": "c",
+        "stdarg.h": "c",
+        "set_io.h": "c",
+        "STDARG.H": "cpp",
+        "AI8051U.H": "cpp",
+        "bit": "c",
+        "compare": "c",
+        "cstddef": "c",
+        "limits": "c",
+        "type_traits": "c",
+        "xmemory": "c",
+        "xtree": "c",
+        "xutility": "c"
+    },
+    "commentTranslate.source": "Bing"
+}

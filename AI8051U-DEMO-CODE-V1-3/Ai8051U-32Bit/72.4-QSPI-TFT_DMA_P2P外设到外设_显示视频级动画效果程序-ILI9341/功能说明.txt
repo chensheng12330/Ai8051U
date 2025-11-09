@@ -1,0 +1,58 @@
+/*************  功能说明    **************
+
+本例程基于AI8051U为主控芯片的实验箱进行编写测试。
+
+使用Keil C251编译器，Memory Model推荐设置XSmall模式，默认定义变量在edata，单时钟存取访问速度快。
+
+edata建议保留1K给堆栈使用，空间不够时可将大数组、不常用变量加xdata关键字定义到xdata空间。
+
+QSPI DMA + LCM DMA驱动液晶屏程序
+
+按住P3.3后上电，芯片进入FLASH下载模式，使用6.94P版的ISP下载软件中的“串行Flash编程器”
+
+工具将多幅图片下载到实验箱的Flash中，然后重新上电（P3.3不要按），即可进入动画显示模式
+
+显示时QSPI 读取Flash图片数据，通过P2P DMA直接发送数据到LCM显示图片。
+
+QSPI读取Flash与LCM显示DMA的数据长度设置51200字节。
+
+8bit I8080模式, P2口接数据线
+
+LCD_RS = P4^5;         //数据/命令切换
+LCD_WR = P3^6;         //写控制
+LCD_RD = P3^7;         //读控制
+LCD_CS = P0^5;//P5^3;  //片选
+LCD_RESET = P4^7;      //复位
+
+QSPI Flash 接口：
+sbit    QSPI_CS          =   P4^0;
+
+sbit    QSPI_SDI_IO0     =   P4^1;
+
+sbit    QSPI_SDO_IO1     =   P4^2;
+
+sbit    QSPI_SCK         =   P4^3;
+
+sbit    QSPI_WP_IO2      =   P5^2;
+
+sbit    QSPI_HLD_IO3     =   P5^3;
+
+下载时, 选择时钟 40MHz (频率定义参数在system.h修改).
+
+本实验使用的2.4寸320*240的并口彩屏，由冲哥淘宝店提供：http://e.tb.cn/h.gIlbVqAOj8YXlwo?tk=vFIr3RGTy2n
+
+Ver6.94P新版软件说明：
+
+  1. 增加串行Flash编程工具
+     选择 USB-HID/CDC串口助手，点击 发送文件窗口，
+     右下角增加Flash编程功能按钮
+     支持多文件同时发送, 支持自动生成文件分配表数据
+     和电脑串口助手通信的MCU要有对Flash编程的对应程序
+     有配套的范例程序可供参考，
+     用户可根据对应的Flash修改相应程序
+  2. 图片取模工具支持对gif文件格式的支持
+     工具菜单 中的 图片取模工具 增加支持转换gif文件
+     支持自动转换多帧图片的所有数据，
+     方便做视频级的动画显示
+
+******************************************/

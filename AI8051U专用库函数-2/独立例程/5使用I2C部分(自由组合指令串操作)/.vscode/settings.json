@@ -1,0 +1,10 @@
+{
+    "commentTranslate.source": "Bing",
+    "files.associations": {
+        "stdio.h": "c",
+        "STDIO.H": "cpp",
+        "string.h": "c",
+        "STRING.H": "cpp",
+        "set_uart.h": "c"
+    }
+}
