@@ -1,0 +1,71 @@
+C251 COMPILER V5.60.0,  adc                                                                10/11/25  23:53:10  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE adc
+OBJECT MODULE PLACED IN .\Objects\adc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE Sources\src\adc.c XSMALL INTR2 BROWSE INCDIR(.\Sources\inc) DEBUG PRIN
+                    -T(.\Listings\adc.lst) TABS(2) OBJECT(.\Objects\adc.obj) 
+
+stmt  level    source
+
+    1          /*---------------------------------------------------------------------*/
+    2          /* --- Web: www.STCAI.com ---------------------------------------------*/
+    3          /*---------------------------------------------------------------------*/
+    4          
+    5          #include "adc.h"
+    6          
+    7          /*************** 功能说明 ****************
+    8          
+    9          查询法读一次ADC结果.
+   10          
+   11          ******************************************/
+   12          
+   13          
+   14          //========================================================================
+   15          // 函数: u16 Get_ADC12bitResult(u8 channel)
+   16          // 描述: 查询法读一次ADC结果.
+   17          // 参数: channel: 选择要转换的ADC.
+   18          // 返回: 12位ADC结果.
+   19          // 版本: V1.0, 2012-10-22
+   20          //========================================================================
+   21          u16 Get_ADC12bitResult(u8 channel)  //channel = 0~15
+   22          {
+   23   1          ADC_RES = 0;
+   24   1          ADC_RESL = 0;
+   25   1      
+   26   1          ADC_CONTR = (ADC_CONTR & 0xf0) | channel; //设置ADC转换通道
+   27   1          ADC_START = 1;//启动ADC转换
+   28   1          _nop_();
+   29   1          _nop_();
+   30   1          _nop_();
+   31   1          _nop_();
+   32   1      
+   33   1          while(ADC_FLAG == 0);   //wait for ADC finish
+   34   1          ADC_FLAG = 0;     //清除ADC结束标志
+   35   1          return  (((u16)ADC_RES << 8) | ADC_RESL);
+   36   1      }
+   37          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =        46     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =    ------     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =    ------     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

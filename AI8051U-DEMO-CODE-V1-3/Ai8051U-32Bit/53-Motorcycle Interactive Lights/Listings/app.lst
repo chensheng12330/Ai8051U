@@ -1,0 +1,97 @@
+C251 COMPILER V5.60.0,  app                                                                10/11/25  23:53:12  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE app
+OBJECT MODULE PLACED IN .\Objects\app.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE Sources\src\app.c XSMALL INTR2 BROWSE INCDIR(.\Sources\inc) DEBUG PRIN
+                    -T(.\Listings\app.lst) TABS(2) OBJECT(.\Objects\app.obj) 
+
+stmt  level    source
+
+    1          /*---------------------------------------------------------------------*/
+    2          /* --- Web: www.STCAI.com ---------------------------------------------*/
+    3          /*---------------------------------------------------------------------*/
+    4          
+    5          #include "app.h"
+    6          
+    7          //========================================================================
+    8          // 函数: APP_config
+    9          // 描述: 用户应用程序初始化.
+   10          // 参数: None.
+   11          // 返回: None.
+   12          // 版本: V1.0, 2020-09-24
+   13          //========================================================================
+   14          void APP_config(void)
+   15          {
+   16   1        Display_init();
+   17   1        RTC_init();
+   18   1        adcKey_init();
+   19   1      
+   20   1      #if ENABLE_INT_KEY
+   21   1        intKey_init();  // 初始化外部中断按键模块
+   22   1      #endif
+   23   1      
+   24   1        // 初始化摩托车智能灯组系统
+   25   1        Motorcycle_Light_System_Init();
+   26   1      
+   27   1        // 更新GPIO配置
+   28   1        GPIO_Config_Update();
+   29   1      }
+   30          
+   31          //========================================================================
+   32          // 函数: Sample_USB_Debug
+   33          // 描述: USB HID 调试任务，通过 USB 接口输出调试信息
+   34          // 参数: None.
+   35          // 返回: None.
+   36          // 版本: V1.0, 2024-01-01
+   37          //========================================================================
+   38          void Sample_USB_Debug(void)
+   39          {
+   40   1          static u16 debug_counter = 0;
+   41   1      
+   42   1          debug_counter++;
+   43   1      
+   44   1          // 每1000次执行（约1秒）输出一次调试信息
+   45   1          if (debug_counter >= 1000)
+   46   1          {
+   47   2              debug_counter = 0;
+   48   2      
+   49   2              // 输出系统运行状态信息
+   50   2              printf("=== System Debug Info ===\n");
+   51   2              printf("System running at 48MHz\n");
+   52   2              printf("USB HID Debug enabled\n");
+   53   2              printf("Task scheduler active\n");
+   54   2      
+   55   2              // 输出一些示例数据
+   56   2              printf("Sample data: 0x%08lX\n", 0x12345678UL);
+   57   2              printf("Counter: %u\n", debug_counter);
+   58   2      
+C251 COMPILER V5.60.0,  app                                                                10/11/25  23:53:12  PAGE 2   
+
+   59   2              printf("========================\n\n");
+   60   2          }
+   61   1      }
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       138     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =         2     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =       166     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

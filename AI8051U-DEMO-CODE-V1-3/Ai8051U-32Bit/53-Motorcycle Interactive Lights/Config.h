@@ -10,6 +10,7 @@
 #include <intrins.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 //========================================================================
 //                               主时钟定义

@@ -1,0 +1,174 @@
+C251 COMPILER V5.60.0,  main                                                               10/11/25  23:47:58  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE main
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE Sources\src\main.c XSMALL INTR2 BROWSE INCDIR(.\Sources\inc) DEBUG PRI
+                    -NT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj) 
+
+stmt  level    source
+
+    1          /*---------------------------------------------------------------------*/
+    2          /* --- Web: www.STCAI.com ---------------------------------------------*/
+    3          /*---------------------------------------------------------------------*/
+    4          
+    5          #include "Task.h"
+    6          #include "System_init.h"
+    7          #include "../comm/usb.h"
+    8          
+    9          //========================================================================
+   10          // 集成独立监控插件（可选）
+   11          //========================================================================
+   12          #include "TaskMonitor/TaskMonitor.h"   // 任务性能监控
+   13          #include "CPUMonitor/CPUMonitor.h"     // CPU占用率监控
+   14          
+   15          //USB调试及复位所需定义
+   16          char *USER_DEVICEDESC = NULL;
+   17          char *USER_PRODUCTDESC = NULL;
+   18          char *USER_STCISPCMD = "@STCISP#";                      //设置自动复位到ISP区的用户接口命�
+             -�
+   19          
+   20          /*************  功能说明  **************
+   21          
+   22          本例程基于AI8051U为主控芯片的实验箱进行编写测试。
+   23          
+   24          使用Timer0的16位自动重装来产生1ms节拍，程序使用这个节拍进行任务调度.
+   25          
+   26          每个任务设置相应的调度周期，根据设置的周期时间执行任务函数.
+   27          
+   28          1. 左边4位LED显示时间(小时,分钟).
+   29          2. 右边4位数码管显示温度值, 分辨率0.1度.
+   30          3. 矩阵键盘扫描，按一个按键蜂鸣器响一下.
+   31          4. ADC按键 “0”：小时+； “1”：小时-； “2”：分钟+； “3”：分钟-；
+   32          
+   33          下载时, 选择时钟 24MHz (可以在配置文件"config.h"中修改).
+   34          
+   35          ******************************************/
+   36          
+   37          //========================================================================
+   38          // 函数: int main(void)
+   39          // 描述: 主函数程序.
+   40          // 参数: None.
+   41          // 返回: int.
+   42          // 版本: V1.0, 2022-05-26
+   43          //========================================================================
+   44          int main(void)
+   45          {
+   46   1          WTST = 0;  //设置程序指令延时参数，赋值为0可将CPU执行指令的速度设置为最快
+   47   1          EAXFR = 1; //扩展寄存器(XFR)访问使能
+   48   1          CKCON = 0; //提高访问XRAM速度
+   49   1      
+   50   1          SYS_Init();
+   51   1          usb_init();  //USB初始化
+   52   1      
+   53   1          //========================================================================
+   54   1          // 优化4：初始化TaskMonitor插件（任务性能监控）
+   55   1          //========================================================================
+   56   1          TaskMonitor_Init();
+   57   1          
+C251 COMPILER V5.60.0,  main                                                               10/11/25  23:47:58  PAGE 2   
+
+   58   1          // 设置各任务的周期（用于超时检测）
+   59   1          TaskMonitor_SetPeriod(0, 1);      // Sample_Display, 1ms
+   60   1          TaskMonitor_SetPeriod(1, 10);     // Sample_MatrixKey, 10ms
+   61   1          TaskMonitor_SetPeriod(2, 10);     // Sample_adcKey, 10ms
+   62   1          TaskMonitor_SetPeriod(3, 300);    // Sample_NTC, 300ms
+   63   1          TaskMonitor_SetPeriod(4, 500);    // Sample_RTC, 500ms
+   64   1      #if ENABLE_INT_KEY
+   65   1          TaskMonitor_SetPeriod(5, 10);     // Sample_intKey, 10ms
+   66   1      #endif
+   67   1          // 摩托车灯组系统任务
+   68   1          TaskMonitor_SetPeriod(6, 1);      // Sample_Vehicle_Signal_Process, 1ms
+   69   1          TaskMonitor_SetPeriod(7, 2);      // Sample_WS2812_DMA_Control, 2ms
+   70   1          TaskMonitor_SetPeriod(8, 5);      // Sample_Button_Process, 5ms
+   71   1          TaskMonitor_SetPeriod(9, 10);     // Sample_Sensor_Read, 10ms
+   72   1          TaskMonitor_SetPeriod(10, 20);    // Sample_Light_Effect_Calculate, 20ms
+   73   1          TaskMonitor_SetPeriod(11, 50);    // Sample_Audio_Process, 50ms
+   74   1          TaskMonitor_SetPeriod(12, 100);   // Sample_Status_Display, 100ms
+   75   1          TaskMonitor_SetPeriod(13, 500);   // Sample_Debug_Output, 500ms
+   76   1          TaskMonitor_SetPeriod(14, 100);   // System_State_Machine, 100ms
+   77   1      
+   78   1          // 监控插件任务
+   79   1          TaskMonitor_SetPeriod(15, 1000);  // CPUMonitor_Calculate, 1000ms
+   80   1          TaskMonitor_SetPeriod(16, 5000);  // TaskMonitor_PrintReport, 5000ms
+   81   1          TaskMonitor_SetPeriod(17, 5000);  // CPUMonitor_PrintReport, 5000ms
+   82   1          TaskMonitor_SetPeriod(18, 1);     // Sample_USB_Debug, 1ms
+   83   1      
+   84   1          //========================================================================
+   85   1          // 优化6：初始化CPUMonitor插件（CPU占用率监控）
+   86   1          //========================================================================
+   87   1          CPUMonitor_Init();
+   88   1      
+   89   1          //========================================================================
+   90   1          // 优化1+5：启用看门狗保护（防止系统死锁）
+   91   1          // 注意：看门狗使用独立的内部IRC时钟，不受MAIN_Fosc影响
+   92   1          //========================================================================
+   93   1          // 看门狗超时时间可选配置（任选其一，根据需求）：
+   94   1          //
+   95   1          // WDT_CONTR = 0x05;  // 预分频2,   溢出时间约 7.8ms   (极短，快速故障恢复)
+   96   1          // WDT_CONTR = 0x15;  // 预分频4,   溢出时间约 15.6ms  (短，实时控制系统)
+   97   1          // WDT_CONTR = 0x25;  // 预分频8,   溢出时间约 31.3ms  (较短，高速任务)
+   98   1          // WDT_CONTR = 0x35;  // 预分频256, 溢出时间约 1秒     (推荐，一般应用) ⭐
+   99   1          // WDT_CONTR = 0x37;  // 预分频256+延长, 溢出时间约 2秒 (长，复杂任务)
+  100   1          //
+  101   1          // 重要说明：
+  102   1          //   - 看门狗使用独立的内部低速IRC（~32kHz），不受主时钟MAIN_Fosc影响
+  103   1          //   - 因此48MHz和24MHz下，看门狗超时时间相同
+  104   1          //   - 溢出时间 = (预分频 × 256) / (看门狗IRC频率)
+  105   1          //   - 当前48MHz主频，主循环执行更快，安全裕量更大 ✅
+  106   1          //========================================================================
+  107   1          WDT_CONTR = 0x35;  // 当前配置：1秒超时（推荐）
+  108   1      
+  109   1          while (1)
+  110   1          {
+  111   2              //====================================================================
+  112   2              // 优化1：喂狗操作（防止看门狗复位）
+  113   2              // 必须在1秒内至少执行一次，否则系统自动复位
+  114   2              //====================================================================
+  115   2              WDT_CONTR |= 0x10;  // 清除看门狗计数器
+  116   2      
+  117   2              //====================================================================
+  118   2              // USB 数据接收处理
+  119   2              //====================================================================
+  120   2              if (bUsbOutReady)
+  121   2              {
+  122   3                  usb_OUT_done(); //接收应答（固定格式）
+  123   3              }
+C251 COMPILER V5.60.0,  main                                                               10/11/25  23:47:58  PAGE 3   
+
+  124   2      
+  125   2              Task_Pro_Handler_Callback();
+  126   2              
+  127   2              //====================================================================
+  128   2              // 优化6：CPUMonitor插件钩子 - 空闲计数
+  129   2              // 开销：1条指令 (~20ns @ 48MHz)，CPU影响<0.001%
+  130   2              //====================================================================
+  131   2              CPU_MONITOR_IDLE_TICK();
+  132   2          }
+  133   1      
+  134   1          return 0; // 永远不会执行到这里
+  135   1      }
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       211     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =        12     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =        33     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

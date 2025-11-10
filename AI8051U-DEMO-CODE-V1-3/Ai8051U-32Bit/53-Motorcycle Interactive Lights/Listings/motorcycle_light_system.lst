@@ -1,0 +1,789 @@
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE motorcycle_light_system
+OBJECT MODULE PLACED IN .\Objects\motorcycle_light_system.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE Sources\src\motorcycle_light_system.c XSMALL INTR2 BROWSE INCDIR(.\Sou
+                    -rces\inc) DEBUG PRINT(.\Listings\motorcycle_light_system.lst) TABS(2) OBJECT(.\Objects\motorcycle_light_system.obj) 
+
+stmt  level    source
+
+    1          /*---------------------------------------------------------------------*/
+    2          /* --- Web: www.STCAI.com ---------------------------------------------*/
+    3          /*---------------------------------------------------------------------*/
+    4          
+    5          #include "motorcycle_light_system.h"
+    6          #include "Task.h"
+    7          #include "config.h"
+    8          //========================================================================
+    9          //                               全局变量定义
+   10          //========================================================================
+   11          
+   12          #define ADC_CHS DMA_ADC_CHSW0 
+   13          
+   14          // 系统状态
+   15          SYSTEM_STATE system_state = SYS_INIT;
+   16          LIGHT_MODE current_mode = LIGHT_POSITION;
+   17          LIGHT_MODE previous_mode = LIGHT_OFF;
+   18          
+   19          // 数据结构体
+   20          VEHICLE_SIGNALS vehicle_signals = {0};
+   21          SENSOR_DATA sensor_data = {0};
+   22          PWM_DUTIES pwm_duties = {0};
+   23          
+   24          // WS2812数据缓冲区 (使用扩展RAM)
+   25          RGB_COLOR xdata led_colors[WS2812_COUNT];
+   26          u8 xdata ws2812_buffer[WS2812_COUNT * 24];
+   27          
+   28          // 音频数据缓冲区
+   29          u16 xdata audio_samples[ADC_SAMPLE_COUNT];
+   30          u8 xdata frequency_bands[8];
+   31          
+   32          // 模式管理
+   33          u16 xdata mode_timers[8] = {0};
+   34          u8 xdata active_modes[8] = {0};
+   35          u8 active_mode_count = 0;
+   36          
+   37          // ADC全局变量 (与现有ADC模块兼容)
+   38          u16 adc_audio_avg = 0;
+   39          u16 adc_battery_avg = 0;
+   40          
+   41          //========================================================================
+   42          //                               系统初始化
+   43          //========================================================================
+   44          
+   45          // WS2812初始化
+   46          void WS2812_Init(void) {
+   47   1          // 配置SPI为WS2812输出模式
+   48   1          SPCTL = 0xD0;  // 主机模式，CPOL=1, CPHA=1
+   49   1          SPSTAT = 0xC0; // 清除SPI状态
+   50   1      
+   51   1          // 配置GPIO P2.5为SPI输出
+   52   1          P2M1 &= ~(1 << 5);  // P2.5推挽输出
+   53   1          P2M0 |= (1 << 5);
+   54   1      }
+   55          
+   56          // PWM多路初始化
+   57          void PWM_Multi_Channel_Init(void) {
+   58   1          // PWMA初始化 (RGB灯组)
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 2   
+
+   59   1          PWMA_CCER1 = 0x00;  // 关闭通道
+   60   1          PWMA_CCMR1 = 0x68;  // CH1-3 PWM模式
+   61   1          PWMA_CCER1 = 0x11;  // CH1-3使能
+   62   1          PWMA_ARRH = 0x07;   // 周期2047
+   63   1          PWMA_ARRL = 0xFF;
+   64   1          PWMA_ENO = 0x07;    // CH1-3输出使能
+   65   1          PWMA_BKR = 0x80;    // 主输出使能
+   66   1          PWMA_CR1 = 0x01;    // 开始计数
+   67   1      
+   68   1          // PWMB初始化 (刹车灯)
+   69   1          PWMB_CCER1 = 0x00;  // 关闭通道
+   70   1          PWMB_CCMR1 = 0x60;  // CH1 PWM模式
+   71   1          PWMB_CCER1 = 0x01;  // CH1使能
+   72   1          PWMB_ARRH = 0x07;   // 周期2047
+   73   1          PWMB_ARRL = 0xFF;
+   74   1          PWMB_ENO = 0x01;    // CH1输出使能
+   75   1          PWMB_BKR = 0x80;    // 主输出使能
+   76   1          PWMB_CR1 = 0x01;    // 开始计数
+   77   1      }
+   78          
+   79          // ADC-DMA多通道初始化
+   80          void ADC_DMA_Config_Multi(void) {
+   81   1          // ADC配置
+   82   1          ADCTIM = 0x3f;      // 设置ADC内部时序
+   83   1          ADCCFG = 0x2f;      // ADC时钟配置
+   84   1          ADC_CONTR = 0x80;   // 使能ADC
+   85   1      
+   86   1          // 配置ADC通道切换
+   87   1          ADC_CHS = ADC_AUDIO_CHANNEL;  // 初始选择音频通道
+   88   1      
+   89   1          // DMA配置 (用于音频采样)
+   90   1          DMA_ADC_CFG = 0x80;                    // 使能ADC DMA
+   91   1          DMA_ADC_STA = (u16)audio_samples;      // 目标地址
+   92   1          DMA_ADC_AMT = ADC_SAMPLE_COUNT;        // 采样点数
+   93   1          DMA_ADC_CR = 0x40;                     // 自动平均使能
+   94   1      
+   95   1          // 全局变量初始化
+   96   1          adc_audio_avg = 0;
+   97   1          adc_battery_avg = 0;
+   98   1      }
+   99          
+  100          // ADC启动多通道采样
+  101          void ADC_Start_Multi_DMA(void) {
+  102   1          static u8 channel_phase = 0;
+  103   1      
+  104   1          switch(channel_phase) {
+  105   2              case 0:  // 音频通道
+  106   2                  ADC_CHS = ADC_AUDIO_CHANNEL;
+  107   2                  DMA_ADC_STA = (u16)audio_samples;
+  108   2                  DMA_ADC_AMT = ADC_SAMPLE_COUNT;
+  109   2                  break;
+  110   2      
+  111   2              case 1:  // 电池电压通道
+  112   2                  ADC_CHS = ADC_BATTERY_CHANNEL;
+  113   2                  DMA_ADC_STA = (u16)&adc_battery_avg;  // 使用全局变量
+  114   2                  DMA_ADC_AMT = 1;  // 单次采样
+  115   2                  break;
+  116   2          }
+  117   1      
+  118   1          // 启动ADC转换
+  119   1          ADC_CONTR = 0x80 | ADC_CHS;
+  120   1          DMA_ADC_CR |= 0x01;  // 启动DMA
+  121   1      
+  122   1          channel_phase = (channel_phase + 1) % 2;
+  123   1      }
+  124          
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 3   
+
+  125          //========================================================================
+  126          //                               系统初始化
+  127          //========================================================================
+  128          
+  129          void Motorcycle_Light_System_Init(void)
+  130          {
+  131   1          printf("[INIT] Starting Motorcycle Light System...\n");
+  132   1      
+  133   1          // 初始化数据结构
+  134   1          memset(&vehicle_signals, 0, sizeof(VEHICLE_SIGNALS));
+  135   1          memset(&sensor_data, 0, sizeof(SENSOR_DATA));
+  136   1          memset(&pwm_duties, 0, sizeof(PWM_DUTIES));
+  137   1      
+  138   1          // 初始化WS2812缓冲区
+  139   1          memset(led_colors, 0, sizeof(led_colors));
+  140   1          memset(ws2812_buffer, 0, sizeof(ws2812_buffer));
+  141   1      
+  142   1          // 初始化音频缓冲区
+  143   1          memset(audio_samples, 0, sizeof(audio_samples));
+  144   1          memset(frequency_bands, 0, sizeof(frequency_bands));
+  145   1      
+  146   1          // 初始化模式管理
+  147   1          memset(mode_timers, 0, sizeof(mode_timers));
+  148   1          memset(active_modes, 0, sizeof(active_modes));
+  149   1          active_mode_count = 0;
+  150   1      
+  151   1          // 初始化传感器
+  152   1          printf("[INIT] Initializing sensors...\n");
+  153   1          // MPU6050_Init() 和 BH1750_Init() 在现有代码中调用
+  154   1      
+  155   1          // 初始化WS2812
+  156   1          printf("[INIT] Initializing WS2812...\n");
+  157   1          WS2812_Init();
+  158   1      
+  159   1          // 初始化PWM
+  160   1          printf("[INIT] Initializing PWM...\n");
+  161   1          PWM_Multi_Channel_Init();
+  162   1      
+  163   1          // 初始化ADC-DMA
+  164   1          printf("[INIT] Initializing ADC-DMA...\n");
+  165   1          ADC_DMA_Config_Multi();
+  166   1      
+  167   1          // 设置初始模式
+  168   1          Set_Light_Mode(LIGHT_POSITION, 1);
+  169   1      
+  170   1          printf("[INIT] Motorcycle Light System initialized successfully!\n");
+  171   1      }
+  172          
+  173          void GPIO_Config_Update(void)
+  174          {
+  175   1          // 更新GPIO配置以支持新的引脚分配
+  176   1          // P3.7设为INT3输入 (模式菜单按键)
+  177   1          P3M1 &= ~(1 << 7);  // P3.7输入
+  178   1          P3M0 &= ~(1 << 7);
+  179   1        
+  180   1          P3PU = 0x0c;    //P3.2,P3.3使能内部上拉
+  181   1      
+  182   1          // 启用INT3中断
+  183   1          EX3 = 1;  // 外部中断3使能
+  184   1          EX2 = 1;  // 外部中断4下降沿触发
+  185   1          IE1  = 0;   //外中断1标志位
+  186   1          IE0  = 0;   //外中断0标志位
+  187   1          EX1 = 1;    //INT1 Enable
+  188   1          EX0 = 1;    //INT0 Enable
+  189   1      
+  190   1          IT0 = 1;    //INT0 下降沿中断
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 4   
+
+  191   1      //  IT0 = 0;    //INT0 上升,下降沿中断  
+  192   1          IT1 = 1;    //INT1 下降沿中断
+  193   1      //  IT1 = 0;    //INT1 上升,下降沿中断  
+  194   1      
+  195   1          //INT2, INT3, INT4 实验板上没有引出测试按键，供需要时参考使用
+  196   1          EX2 = 1;    //使能 INT2 下降沿中断
+  197   1          EX3 = 1;    //使能 INT3 下降沿中断
+  198   1          //EX4 = 1;    //使能 INT4 下降沿中断
+  199   1      
+  200   1          // 设置中断优先级 (INT3设为低优先级)
+  201   1          IP2 &= ~(1 << 5);  // PX3 = 0 (低优先级)
+  202   1      }
+  203          
+  204          //========================================================================
+  205          //                               任务函数实现
+  206          //========================================================================
+  207          
+  208          // 任务1: 原车信号处理 (1ms, 优先级0)
+  209          void Sample_Vehicle_Signal_Process(void)
+  210          {
+  211   1          static u8 last_signals = 0;
+  212   1          u8 current_signals = 0;
+  213   1        u8 signal_changes = 0;
+  214   1      
+  215   1          // 读取所有信号状态 (优化为位操作)
+  216   1          current_signals |= (P00 ? 0x01 : 0);  // 刹车信号
+  217   1          current_signals |= (P01 ? 0x02 : 0);  // 雾灯信号
+  218   1          current_signals |= (P02 ? 0x04 : 0);  // 近光灯信号
+  219   1          current_signals |= (P03 ? 0x08 : 0);  // 远光灯信号
+  220   1          current_signals |= (P04 ? 0x10 : 0);  // 左转向信号
+  221   1          current_signals |= (P05 ? 0x20 : 0);  // 右转向信号
+  222   1      
+  223   1          // 检测信号变化 (上升沿触发)
+  224   1          signal_changes = current_signals & ~last_signals;
+  225   1      
+  226   1          // 更新信号状态
+  227   1          vehicle_signals.brake_signal = P00;
+  228   1          vehicle_signals.fog_light = P01;
+  229   1          vehicle_signals.headlight_low = P02;
+  230   1          vehicle_signals.headlight_high = P03;
+  231   1          vehicle_signals.turn_left = P04;
+  232   1          vehicle_signals.turn_right = P05;
+  233   1      
+  234   1          // 根据信号变化更新模式
+  235   1          if(signal_changes & 0x01) { // 刹车信号上升沿
+  236   2              printf("[SIGNAL] Brake signal detected\n");
+  237   2              Set_Light_Mode(LIGHT_BRAKE, 1);
+  238   2          }
+  239   1          if(signal_changes & 0x10) { // 左转向上升沿
+  240   2              printf("[SIGNAL] Left turn signal detected\n");
+  241   2              Set_Light_Mode(LIGHT_TURN_LEFT, 1);
+  242   2          }
+  243   1          if(signal_changes & 0x20) { // 右转向上升沿
+  244   2              printf("[SIGNAL] Right turn signal detected\n");
+  245   2              Set_Light_Mode(LIGHT_TURN_RIGHT, 1);
+  246   2          }
+  247   1      
+  248   1          last_signals = current_signals;
+  249   1      }
+  250          
+  251          // 任务2: WS2812 DMA控制 (2ms, 优先级0)
+  252          void Sample_WS2812_DMA_Control(void)
+  253          {
+  254   1          static u8 dma_state = 0;
+  255   1      
+  256   1          switch(dma_state) {
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 5   
+
+  257   2              case 0: // 检查DMA是否完成
+  258   2                  if(DMA_SPI_DONE) {
+  259   3                      WS2812_Send_DMA(); // 启动DMA传输
+  260   3                      dma_state = 1;
+  261   3                  }
+  262   2                  break;
+  263   2      
+  264   2              case 1: // 等待传输完成
+  265   2                  if(DMA_SPI_DONE) {
+  266   3                      dma_state = 0;
+  267   3                  }
+  268   2                  break;
+  269   2          }
+  270   1      }
+  271          
+  272          // 任务3: 按键处理 (5ms, 优先级1)
+  273          void Sample_Button_Process(void)
+  274          {
+  275   1          // 检查INT2 (测试按键 P3.6)
+  276   1          if(INT2_FLAG) {
+  277   2              INT2_FLAG = 0;
+  278   2              printf("[BUTTON] Test button pressed\n");
+  279   2              // 进入测试模式
+  280   2              system_state = SYS_TEST_MODE;
+  281   2          }
+  282   1      
+  283   1          // 检查INT3 (菜单按键 P3.7)
+  284   1          if(INT3_FLAG) {
+  285   2              INT3_FLAG = 0;
+  286   2              printf("[BUTTON] Menu button pressed\n");
+  287   2              // 循环切换模式
+  288   2              LIGHT_MODE next_mode = (current_mode + 1) % 8;
+*** ERROR C25 IN LINE 288 OF Sources\src\motorcycle_light_system.c: syntax error near 'LIGHT_MODE'
+  289   2              Set_Light_Mode(current_mode, 0); // 关闭当前模式
+*** ERROR C76 IN LINE 289 OF Sources\src\motorcycle_light_system.c: formal parameter ignored
+*** ERROR C25 IN LINE 289 OF Sources\src\motorcycle_light_system.c: syntax error near '0'
+*** ERROR C53 IN LINE 289 OF Sources\src\motorcycle_light_system.c: redefinition of 'Set_Light_Mode': different return t
+             -ypes
+  290   2              Set_Light_Mode(next_mode, 1);    // 开启下一模式
+*** ERROR C76 IN LINE 290 OF Sources\src\motorcycle_light_system.c: formal parameter ignored
+*** ERROR C25 IN LINE 290 OF Sources\src\motorcycle_light_system.c: syntax error near '1'
+*** ERROR C53 IN LINE 290 OF Sources\src\motorcycle_light_system.c: redefinition of 'Set_Light_Mode': different return t
+             -ypes
+  291   2          }
+*** ERROR C25 IN LINE 291 OF Sources\src\motorcycle_light_system.c: syntax error near '}'
+  292   2      }
+  293   2      
+  294   2      // 任务4: 传感器读取 (10ms, 优先级1)
+  295   2      void Sample_Sensor_Read(void)
+  296   2      {
+  297   3          static u8 sensor_phase = 0;
+  298   3      
+  299   3          switch(sensor_phase) {
+  300   4              case 0: // 读取MPU6050加速度
+  301   4                  MPU6050_Read_Accel(&sensor_data.accel_x,
+  302   4                                    &sensor_data.accel_y,
+  303   4                                    &sensor_data.accel_z);
+  304   4                  sensor_phase = 1;
+  305   4                  break;
+  306   4      
+  307   4              case 1: // 读取BH1750光强
+  308   4                  sensor_data.light_level = BH1750_Read_Light();
+  309   4                  sensor_phase = 2;
+  310   4                  break;
+  311   4      
+  312   4              case 2: // ADC-DMA读取音频和电压
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 6   
+
+  313   4                  if(DMA_ADC_DONE) {
+  314   5                      sensor_data.audio_level = adc_audio_avg;
+  315   5                      sensor_data.battery_voltage = adc_battery_avg;
+  316   5                      ADC_Start_Multi_DMA(); // 启动下次采样
+  317   5                      sensor_phase = 0;
+  318   5      
+  319   5                      // 电池电压检测
+  320   5                      if(sensor_data.battery_voltage < LOW_VOLTAGE_THRESHOLD) {
+  321   6                          if(system_state == SYS_NORMAL) {
+  322   7                              printf("[POWER] Low voltage detected: %dmV\n",
+  323   7                                     sensor_data.battery_voltage);
+  324   7                              system_state = SYS_LOW_POWER;
+  325   7                          }
+  326   6                      } else if(sensor_data.battery_voltage > RECOVER_VOLTAGE_THRESHOLD) {
+  327   6                          if(system_state == SYS_LOW_POWER) {
+  328   7                              printf("[POWER] Voltage recovered: %dmV\n",
+  329   7                                     sensor_data.battery_voltage);
+  330   7                              system_state = SYS_NORMAL;
+  331   7                          }
+  332   6                      }
+  333   5                  }
+  334   4                  break;
+  335   4          }
+  336   3      }
+  337   2      
+  338   2      // 任务5: 灯效算法计算 (20ms, 优先级2)
+  339   2      void Sample_Light_Effect_Calculate(void)
+  340   2      {
+  341   3          // 根据当前活动模式计算灯效
+  342   3          u8 i;
+  343   3          for(i = 0; i < active_mode_count; i++) {
+  344   4              LIGHT_MODE mode = active_modes[i];
+  345   4      
+  346   4              switch(mode) {
+  347   5                  case LIGHT_BRAKE:
+  348   5                      Calculate_Brake_Effect();
+*** WARNING C140 IN LINE 348 OF Sources\src\motorcycle_light_system.c: 'Calculate_Brake_Effect' undefined; assuming 'ext
+             -ern int Calculate_Brake_Effect()'
+  349   5                      break;
+  350   5                  case LIGHT_TURN_LEFT:
+  351   5                      Calculate_Turn_Left_Effect();
+*** WARNING C140 IN LINE 351 OF Sources\src\motorcycle_light_system.c: 'Calculate_Turn_Left_Effect' undefined; assuming 
+             -'extern int Calculate_Turn_Left_Effect()'
+  352   5                      break;
+  353   5                  case LIGHT_TURN_RIGHT:
+  354   5                      Calculate_Turn_Right_Effect();
+*** WARNING C140 IN LINE 354 OF Sources\src\motorcycle_light_system.c: 'Calculate_Turn_Right_Effect' undefined; assuming
+             - 'extern int Calculate_Turn_Right_Effect()'
+  355   5                      break;
+  356   5                  case LIGHT_MUSIC:
+  357   5                      Calculate_Music_Sync_Effect();
+*** WARNING C140 IN LINE 357 OF Sources\src\motorcycle_light_system.c: 'Calculate_Music_Sync_Effect' undefined; assuming
+             - 'extern int Calculate_Music_Sync_Effect()'
+  358   5                      break;
+  359   5                  case LIGHT_POSITION:
+  360   5                      Calculate_Position_Effect();
+*** WARNING C140 IN LINE 360 OF Sources\src\motorcycle_light_system.c: 'Calculate_Position_Effect' undefined; assuming '
+             -extern int Calculate_Position_Effect()'
+  361   5                      break;
+  362   5                  case LIGHT_AMBIENT:
+  363   5                      Calculate_Ambient_Effect();
+*** WARNING C140 IN LINE 363 OF Sources\src\motorcycle_light_system.c: 'Calculate_Ambient_Effect' undefined; assuming 'e
+             -xtern int Calculate_Ambient_Effect()'
+  364   5                      break;
+  365   5                  default:
+  366   5                      break;
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 7   
+
+  367   5              }
+  368   4          }
+  369   3      
+  370   3          // 更新PWM输出
+  371   3          Update_PWM_Outputs();
+  372   3      
+  373   3          // 编码WS2812数据
+  374   3          WS2812_Encode_Buffer();
+  375   3      }
+  376   2      
+  377   2      // 任务6: 音频频谱处理 (50ms, 优先级2)
+  378   2      void Sample_Audio_Process(void)
+  379   2      {
+  380   3          // FFT分析音频信号
+  381   3          Audio_FFT_Process(audio_samples);
+  382   3      
+  383   3          // 计算频谱数据
+  384   3          Calculate_Frequency_Bands();
+  385   3      
+  386   3          // 调整全局亮度
+  387   3          Adjust_Global_Brightness();
+*** WARNING C140 IN LINE 387 OF Sources\src\motorcycle_light_system.c: 'Adjust_Global_Brightness' undefined; assuming 'e
+             -xtern int Adjust_Global_Brightness()'
+  388   3      }
+  389   2      
+  390   2      // 任务7: 状态指示 (100ms, 优先级3)
+  391   2      void Sample_Status_Display(void)
+  392   2      {
+  393   3          static u16 status_timer = 0;
+  394   3          status_timer++;
+  395   3      
+  396   3          // 根据系统状态闪烁状态LED
+  397   3          switch(system_state) {
+  398   4              case SYS_NORMAL:
+  399   4                  // 正常运行：蓝色LED慢闪
+  400   4                  if(status_timer % 1000 == 0) { // 1秒周期
+  401   5                      P1_7 = !P1_7; // 蓝色LED
+*** ERROR C67 IN LINE 401 OF Sources\src\motorcycle_light_system.c: 'P1_7': undefined identifier
+*** ERROR C67 IN LINE 401 OF Sources\src\motorcycle_light_system.c: 'P1_7': undefined identifier
+  402   5                  }
+  403   4                  break;
+  404   4      
+  405   4              case SYS_LOW_POWER:
+  406   4                  // 低功耗：蓝色LED快闪
+  407   4                  if(status_timer % 200 == 0) { // 200ms周期
+  408   5                      P1_7 = !P1_7;
+*** ERROR C67 IN LINE 408 OF Sources\src\motorcycle_light_system.c: 'P1_7': undefined identifier
+*** ERROR C67 IN LINE 408 OF Sources\src\motorcycle_light_system.c: 'P1_7': undefined identifier
+  409   5                  }
+  410   4                  break;
+  411   4      
+  412   4              case SYS_ERROR:
+  413   4                  // 错误状态：红色LED快闪
+  414   4                  if(status_timer % 200 == 0) {
+  415   5                      P1_6 = !P1_6; // 红色LED
+*** ERROR C67 IN LINE 415 OF Sources\src\motorcycle_light_system.c: 'P1_6': undefined identifier
+*** ERROR C67 IN LINE 415 OF Sources\src\motorcycle_light_system.c: 'P1_6': undefined identifier
+  416   5                  }
+  417   4                  break;
+  418   4      
+  419   4              case SYS_TEST_MODE:
+  420   4                  // 测试模式：双色交替闪烁
+  421   4                  if(status_timer % 300 == 0) {
+  422   5                      P1_6 = !P1_6;
+*** ERROR C67 IN LINE 422 OF Sources\src\motorcycle_light_system.c: 'P1_6': undefined identifier
+*** ERROR C67 IN LINE 422 OF Sources\src\motorcycle_light_system.c: 'P1_6': undefined identifier
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 8   
+
+  423   5                      P1_7 = !P1_7;
+*** ERROR C67 IN LINE 423 OF Sources\src\motorcycle_light_system.c: 'P1_7': undefined identifier
+*** ERROR C67 IN LINE 423 OF Sources\src\motorcycle_light_system.c: 'P1_7': undefined identifier
+  424   5                  }
+  425   4                  break;
+  426   4      
+  427   4              default:
+  428   4                  break;
+  429   4          }
+  430   3      }
+  431   2      
+  432   2      // 任务8: 调试输出 (500ms, 优先级3)
+  433   2      void Sample_Debug_Output(void)
+  434   2      {
+  435   3          static u16 debug_counter = 0;
+  436   3          debug_counter++;
+  437   3      
+  438   3          if(debug_counter >= 1000) { // 约500ms * 2
+  439   4              debug_counter = 0;
+  440   4      
+  441   4              printf("\n=== Motorcycle Light System Status ===\n");
+  442   4              printf("System State: %d, Light Mode: %d\n",
+  443   4                     system_state, current_mode);
+  444   4              printf("Battery: %dmV, Light: %d lux\n",
+  445   4                     sensor_data.battery_voltage, sensor_data.light_level);
+  446   4              printf("Accel: X=%d, Y=%d, Z=%d\n",
+  447   4                     sensor_data.accel_x, sensor_data.accel_y, sensor_data.accel_z);
+  448   4              printf("Active Modes: %d\n", active_mode_count);
+  449   4              printf("=======================================\n\n");
+  450   4          }
+  451   3      }
+  452   2      
+  453   2      //========================================================================
+  454   2      //                               信号检测函数
+  455   2      //========================================================================
+  456   2      
+  457   2      u8 Brake_Signal_Active(void) {
+  458   3          return vehicle_signals.brake_signal;
+  459   3      }
+  460   2      
+  461   2      u8 Turn_Left_Signal_Active(void) {
+  462   3          return vehicle_signals.turn_left;
+  463   3      }
+  464   2      
+  465   2      u8 Turn_Right_Signal_Active(void) {
+  466   3          return vehicle_signals.turn_right;
+  467   3      }
+  468   2      
+  469   2      u8 High_Beam_Active(void) {
+  470   3          return vehicle_signals.headlight_high;
+  471   3      }
+  472   2      
+  473   2      u8 Audio_Signal_Detected(void) {
+  474   3          return (sensor_data.audio_level > 100); // 音频阈值检测
+  475   3      }
+  476   2      
+  477   2      //========================================================================
+  478   2      //                               灯效控制函数
+  479   2      //========================================================================
+  480   2      
+  481   2      void Set_Light_Mode(LIGHT_MODE new_mode, u8 enable) {
+  482   3          u8 new_priority = Get_Light_Mode_Priority(new_mode);
+  483   3          u8 current_priority = Get_Light_Mode_Priority(current_mode);
+  484   3      
+  485   3          printf("[MODE] Request mode %d (Priority:%d), Current mode %d (Priority:%d)\n",
+  486   3                 new_mode, new_priority, current_mode, current_priority);
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 9   
+
+  487   3      
+  488   3          if(enable) {
+  489   4              // 低优先级不能覆盖高优先级
+  490   4              if(new_priority <= current_priority) {
+  491   5                  printf("[MODE] Switching from %d to %d (Priority:%d->%d)\n",
+  492   5                         current_mode, new_mode, current_priority, new_priority);
+  493   5      
+  494   5                  // 切换到新模式
+  495   5                  previous_mode = current_mode;
+  496   5                  current_mode = new_mode;
+  497   5                  Apply_Light_Effect(new_mode);
+  498   5              } else {
+  499   5                  printf("[MODE] Mode %d blocked by higher priority mode %d\n",
+  500   5                         new_mode, current_mode);
+  501   5              }
+  502   4          } else {
+  503   4              // 模式释放
+  504   4              if(current_mode == new_mode) {
+  505   5                  printf("[MODE] Mode %d released, returning to %d\n",
+  506   5                         new_mode, previous_mode);
+  507   5                  current_mode = previous_mode;
+  508   5                  Apply_Light_Effect(current_mode);
+  509   5              }
+  510   4          }
+  511   3      }
+  512   2      
+  513   2      void Apply_Light_Effect(LIGHT_MODE mode) {
+  514   3          printf("[LIGHT] Applying effect for mode %d\n", mode);
+  515   3      
+  516   3          switch(mode) {
+  517   4              case LIGHT_OFF:
+  518   4                  // 关闭所有灯效
+  519   4                  memset(led_colors, 0, sizeof(led_colors));
+  520   4                  pwm_duties.red_duty = 0;
+  521   4                  pwm_duties.green_duty = 0;
+  522   4                  pwm_duties.blue_duty = 0;
+  523   4                  pwm_duties.brake_duty = 0;
+  524   4                  break;
+  525   4      
+  526   4              case LIGHT_POSITION:
+  527   4                  // 位置灯：低亮度白色
+  528   4                  for(u8 i = 0; i < WS2812_COUNT; i++) {
+*** ERROR C25 IN LINE 528 OF Sources\src\motorcycle_light_system.c: syntax error near 'u8'
+*** ERROR C67 IN LINE 528 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+*** ERROR C67 IN LINE 528 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  529   5                      led_colors[i].r = 50;
+*** ERROR C67 IN LINE 529 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  530   5                      led_colors[i].g = 50;
+*** ERROR C67 IN LINE 530 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  531   5                      led_colors[i].b = 50;
+*** ERROR C67 IN LINE 531 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  532   5                  }
+  533   4                  pwm_duties.brake_duty = 512; // 50%占空比，2秒闪烁
+  534   4                  break;
+  535   4      
+  536   4              case LIGHT_BRAKE:
+  537   4                  // 刹车：红色高亮
+  538   4                  for(u8 i = 0; i < WS2812_COUNT; i++) {
+*** ERROR C25 IN LINE 538 OF Sources\src\motorcycle_light_system.c: syntax error near 'u8'
+*** ERROR C67 IN LINE 538 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+*** ERROR C67 IN LINE 538 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  539   5                      led_colors[i].r = 255;
+*** ERROR C67 IN LINE 539 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  540   5                      led_colors[i].g = 0;
+*** ERROR C67 IN LINE 540 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  541   5                      led_colors[i].b = 0;
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 10  
+
+*** ERROR C67 IN LINE 541 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  542   5                  }
+  543   4                  pwm_duties.red_duty = 1023;   // 红色全亮
+  544   4                  pwm_duties.brake_duty = 1023; // 刹车灯全亮
+  545   4                  break;
+  546   4      
+  547   4              case LIGHT_TURN_LEFT:
+  548   4                  // 左转向：左侧流水效果
+  549   4                  Calculate_Turn_Left_Effect();
+  550   4                  break;
+  551   4      
+  552   4              case LIGHT_TURN_RIGHT:
+  553   4                  // 右转向：右侧流水效果
+  554   4                  Calculate_Turn_Right_Effect();
+  555   4                  break;
+  556   4      
+  557   4              case LIGHT_HIGH_BEAM:
+  558   4                  // 远光灯：增强亮度
+  559   4                  // 基础位置灯亮度提升
+  560   4                  for(u8 i = 0; i < WS2812_COUNT; i++) {
+*** ERROR C25 IN LINE 560 OF Sources\src\motorcycle_light_system.c: syntax error near 'u8'
+*** ERROR C67 IN LINE 560 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+*** ERROR C67 IN LINE 560 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  561   5                      led_colors[i].r = 150;
+*** ERROR C67 IN LINE 561 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  562   5                      led_colors[i].g = 150;
+*** ERROR C67 IN LINE 562 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  563   5                      led_colors[i].b = 150;
+*** ERROR C67 IN LINE 563 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  564   5                  }
+  565   4                  break;
+  566   4      
+  567   4              case LIGHT_MUSIC:
+  568   4                  // 音乐频谱：音频可视化
+  569   4                  Calculate_Music_Sync_Effect();
+  570   4                  break;
+  571   4      
+  572   4              case LIGHT_AMBIENT:
+  573   4                  // 环境适应：根据光强调整
+  574   4                  Calculate_Ambient_Effect();
+  575   4                  break;
+  576   4          }
+  577   3      }
+  578   2      
+  579   2      u8 Get_Light_Mode_Priority(LIGHT_MODE mode) {
+  580   3          switch(mode) {
+  581   4              case LIGHT_BRAKE:      return PRIORITY_BRAKE;
+  582   4              case LIGHT_TURN_LEFT:
+  583   4              case LIGHT_TURN_RIGHT: return PRIORITY_TURN;
+  584   4              case LIGHT_POSITION:   return PRIORITY_POSITION;
+  585   4              case LIGHT_HIGH_BEAM:  return PRIORITY_HEADLIGHT;
+  586   4              case LIGHT_MUSIC:      return PRIORITY_MUSIC;
+  587   4              case LIGHT_AMBIENT:    return PRIORITY_AMBIENT;
+  588   4              default:               return 255;
+  589   4          }
+  590   3      }
+  591   2      
+  592   2      //========================================================================
+  593   2      //                               灯效算法实现
+  594   2      //========================================================================
+  595   2      
+  596   2      void Calculate_Brake_Effect(void) {
+*** ERROR C53 IN LINE 596 OF Sources\src\motorcycle_light_system.c: redefinition of 'Calculate_Brake_Effect': different 
+             -return types
+  597   3          // 刹车效果已在Apply_Light_Effect中实现
+  598   3          // 这里可以添加动态效果，如呼吸闪烁
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 11  
+
+  599   3      }
+  600   2      
+  601   2      void Calculate_Turn_Left_Effect(void) {
+*** ERROR C53 IN LINE 601 OF Sources\src\motorcycle_light_system.c: redefinition of 'Calculate_Turn_Left_Effect': differ
+             -ent return types
+  602   3          static u8 phase = 0;
+  603   3          phase = (phase + 1) % 10;
+  604   3      
+  605   3          // 左侧灯珠流水效果 (假设0-44为左侧)
+  606   3          for(u8 i = 0; i < WS2812_COUNT/2; i++) {
+*** ERROR C25 IN LINE 606 OF Sources\src\motorcycle_light_system.c: syntax error near 'u8'
+*** ERROR C67 IN LINE 606 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+*** ERROR C67 IN LINE 606 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  607   4              if(i >= phase * 4.4 && i < (phase + 1) * 4.4) {
+*** ERROR C67 IN LINE 607 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+*** ERROR C67 IN LINE 607 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  608   5                  led_colors[i].r = 255;
+*** ERROR C67 IN LINE 608 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  609   5                  led_colors[i].g = 255;
+*** ERROR C67 IN LINE 609 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  610   5                  led_colors[i].b = 0;  // 黄色转向灯
+*** ERROR C67 IN LINE 610 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  611   5              } else {
+  612   5                  led_colors[i].r = 0;
+*** ERROR C67 IN LINE 612 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  613   5                  led_colors[i].g = 0;
+*** ERROR C67 IN LINE 613 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  614   5                  led_colors[i].b = 0;
+*** ERROR C67 IN LINE 614 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  615   5              }
+  616   4          }
+  617   3      }
+  618   2      
+  619   2      void Calculate_Turn_Right_Effect(void) {
+*** ERROR C53 IN LINE 619 OF Sources\src\motorcycle_light_system.c: redefinition of 'Calculate_Turn_Right_Effect': diffe
+             -rent return types
+  620   3          static u8 phase = 0;
+  621   3          phase = (phase + 1) % 10;
+  622   3      
+  623   3          // 右侧灯珠流水效果 (假设45-89为右侧)
+  624   3          for(u8 i = WS2812_COUNT/2; i < WS2812_COUNT; i++) {
+*** ERROR C25 IN LINE 624 OF Sources\src\motorcycle_light_system.c: syntax error near 'u8'
+*** ERROR C67 IN LINE 624 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+*** ERROR C67 IN LINE 624 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  625   4              if(i >= WS2812_COUNT/2 + phase * 4.4 &&
+*** ERROR C67 IN LINE 625 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  626   4                 i < WS2812_COUNT/2 + (phase + 1) * 4.4) {
+*** ERROR C67 IN LINE 626 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  627   5                  led_colors[i].r = 255;
+*** ERROR C67 IN LINE 627 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  628   5                  led_colors[i].g = 255;
+*** ERROR C67 IN LINE 628 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  629   5                  led_colors[i].b = 0;  // 黄色转向灯
+*** ERROR C67 IN LINE 629 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  630   5              } else {
+  631   5                  led_colors[i].r = 0;
+*** ERROR C67 IN LINE 631 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  632   5                  led_colors[i].g = 0;
+*** ERROR C67 IN LINE 632 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  633   5                  led_colors[i].b = 0;
+*** ERROR C67 IN LINE 633 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  634   5              }
+  635   4          }
+  636   3      }
+  637   2      
+  638   2      void Calculate_Position_Effect(void) {
+C251 COMPILER V5.60.0,  motorcycle_light_system                                            11/11/25  00:23:31  PAGE 12  
+
+*** ERROR C53 IN LINE 638 OF Sources\src\motorcycle_light_system.c: redefinition of 'Calculate_Position_Effect': differe
+             -nt return types
+  639   3          // 位置灯效果已在Apply_Light_Effect中实现
+  640   3      }
+  641   2      
+  642   2      void Calculate_Music_Sync_Effect(void) {
+*** ERROR C53 IN LINE 642 OF Sources\src\motorcycle_light_system.c: redefinition of 'Calculate_Music_Sync_Effect': diffe
+             -rent return types
+  643   3          // 根据频谱数据设置灯效
+  644   3          for(u8 i = 0; i < WS2812_COUNT; i++) {
+*** ERROR C25 IN LINE 644 OF Sources\src\motorcycle_light_system.c: syntax error near 'u8'
+*** ERROR C67 IN LINE 644 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+*** ERROR C67 IN LINE 644 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  645   4              u8 band = i % 8;
+*** ERROR C67 IN LINE 645 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  646   4              u8 intensity = frequency_bands[band];
+  647   4      
+  648   4              // 将频谱强度转换为RGB颜色
+  649   4              led_colors[i].r = intensity;
+*** ERROR C67 IN LINE 649 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  650   4              led_colors[i].g = intensity / 2;
+*** ERROR C67 IN LINE 650 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  651   4              led_colors[i].b = intensity / 4;
+*** ERROR C67 IN LINE 651 OF Sources\src\motorcycle_light_system.c: 'i': undefined identifier
+  652   4          }
+  653   3      }
+  654   2      
+  655   2      void Calculate_Ambient_Effect(void) {
+*** ERROR C53 IN LINE 655 OF Sources\src\motorcycle_light_system.c: redefinition of 'Calculate_Ambient_Effect': differen
+             -t return types
+  656   3          // 根据环境光强调整亮度
+  657   3          u8 brightness;
+  658   3          brightness= 255 - (sensor_data.light_level / 16); // 反比关系
+  659   3      
+  660   3          for(u8 i = 0; i < WS2812_COUNT; i++) {
+*** ERROR C25 IN LINE 660 OF Sources\src\motorcycle_light_system.c: syntax error near 'u8'
+*** ERROR C7 IN LINE 660 OF Sources\src\motorcycle_light_system.c: compilation aborted
+
+C251 COMPILATION COMPLETE.  7 WARNING(S),  73 ERROR(S)

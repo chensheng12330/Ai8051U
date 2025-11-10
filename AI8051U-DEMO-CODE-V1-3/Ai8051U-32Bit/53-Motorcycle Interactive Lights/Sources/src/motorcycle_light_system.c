@@ -4,11 +4,12 @@
 
 #include "motorcycle_light_system.h"
 #include "Task.h"
-#include "../USBHID/usb.h"
-
+#include "config.h"
 //========================================================================
 //                               全局变量定义
 //========================================================================
+
+#define ADC_CHS DMA_ADC_CHSW0 
 
 // 系统状态
 SYSTEM_STATE system_state = SYS_INIT;
@@ -175,10 +176,26 @@ void GPIO_Config_Update(void)
     // P3.7设为INT3输入 (模式菜单按键)
     P3M1 &= ~(1 << 7);  // P3.7输入
     P3M0 &= ~(1 << 7);
+	
+		P3PU = 0x0c;    //P3.2,P3.3使能内部上拉
 
     // 启用INT3中断
     EX3 = 1;  // 外部中断3使能
-    IT3 = 1;  // 外部中断3下降沿触发
+    EX2 = 1;  // 外部中断4下降沿触发
+		IE1  = 0;   //外中断1标志位
+    IE0  = 0;   //外中断0标志位
+    EX1 = 1;    //INT1 Enable
+    EX0 = 1;    //INT0 Enable
+
+    IT0 = 1;    //INT0 下降沿中断
+//  IT0 = 0;    //INT0 上升,下降沿中断  
+    IT1 = 1;    //INT1 下降沿中断
+//  IT1 = 0;    //INT1 上升,下降沿中断  
+
+    //INT2, INT3, INT4 实验板上没有引出测试按键，供需要时参考使用
+    EX2 = 1;    //使能 INT2 下降沿中断
+    EX3 = 1;    //使能 INT3 下降沿中断
+    //EX4 = 1;    //使能 INT4 下降沿中断
 
     // 设置中断优先级 (INT3设为低优先级)
     IP2 &= ~(1 << 5);  // PX3 = 0 (低优先级)
@@ -193,25 +210,26 @@ void Sample_Vehicle_Signal_Process(void)
 {
     static u8 last_signals = 0;
     u8 current_signals = 0;
+	u8 signal_changes = 0;
 
     // 读取所有信号状态 (优化为位操作)
-    current_signals |= (P0_0 ? 0x01 : 0);  // 刹车信号
-    current_signals |= (P0_1 ? 0x02 : 0);  // 雾灯信号
-    current_signals |= (P0_2 ? 0x04 : 0);  // 近光灯信号
-    current_signals |= (P0_3 ? 0x08 : 0);  // 远光灯信号
-    current_signals |= (P0_4 ? 0x10 : 0);  // 左转向信号
-    current_signals |= (P0_5 ? 0x20 : 0);  // 右转向信号
+    current_signals |= (P00 ? 0x01 : 0);  // 刹车信号
+    current_signals |= (P01 ? 0x02 : 0);  // 雾灯信号
+    current_signals |= (P02 ? 0x04 : 0);  // 近光灯信号
+    current_signals |= (P03 ? 0x08 : 0);  // 远光灯信号
+    current_signals |= (P04 ? 0x10 : 0);  // 左转向信号
+    current_signals |= (P05 ? 0x20 : 0);  // 右转向信号
 
     // 检测信号变化 (上升沿触发)
-    u8 signal_changes = current_signals & ~last_signals;
+    signal_changes = current_signals & ~last_signals;
 
     // 更新信号状态
-    vehicle_signals.brake_signal = P0_0;
-    vehicle_signals.fog_light = P0_1;
-    vehicle_signals.headlight_low = P0_2;
-    vehicle_signals.headlight_high = P0_3;
-    vehicle_signals.turn_left = P0_4;
-    vehicle_signals.turn_right = P0_5;
+    vehicle_signals.brake_signal = P00;
+    vehicle_signals.fog_light = P01;
+    vehicle_signals.headlight_low = P02;
+    vehicle_signals.headlight_high = P03;
+    vehicle_signals.turn_left = P04;
+    vehicle_signals.turn_right = P05;
 
     // 根据信号变化更新模式
     if(signal_changes & 0x01) { // 刹车信号上升沿
@@ -321,7 +339,8 @@ void Sample_Sensor_Read(void)
 void Sample_Light_Effect_Calculate(void)
 {
     // 根据当前活动模式计算灯效
-    for(u8 i = 0; i < active_mode_count; i++) {
+		u8 i;
+    for(i = 0; i < active_mode_count; i++) {
         LIGHT_MODE mode = active_modes[i];
 
         switch(mode) {
@@ -635,7 +654,8 @@ void Calculate_Music_Sync_Effect(void) {
 
 void Calculate_Ambient_Effect(void) {
     // 根据环境光强调整亮度
-    u8 brightness = 255 - (sensor_data.light_level / 16); // 反比关系
+    u8 brightness;
+		brightness= 255 - (sensor_data.light_level / 16); // 反比关系
 
     for(u8 i = 0; i < WS2812_COUNT; i++) {
         led_colors[i].r = brightness;
@@ -664,13 +684,13 @@ void WS2812_Send_DMA(void) {
 
 void WS2812_Encode_Buffer(void) {
     u8 *p = ws2812_buffer;
-
-    for(u8 i = 0; i < WS2812_COUNT; i++) {
+		u8 i,j,k;
+    for( i = 0; i < WS2812_COUNT; i++) {
         // GRB顺序 (WS2812标准)
         u8 colors[3] = {led_colors[i].g, led_colors[i].r, led_colors[i].b};
 
-        for(u8 j = 0; j < 3; j++) {
-            for(u8 k = 0; k < 8; k++) {
+        for( j = 0; j < 3; j++) {
+            for( k = 0; k < 8; k++) {
                 if(colors[j] & (0x80 >> k)) {
                     *p++ = 0xFE;  // 1码: 850ns高 + 400ns低
                 } else {
@@ -687,18 +707,18 @@ void WS2812_Encode_Buffer(void) {
 
 void Update_PWM_Outputs(void) {
     // 更新PWMA通道 (RGB灯组)
-    PWMA_CCR1H = pwm_duties.red_duty >> 8;
-    PWMA_CCR1L = pwm_duties.red_duty;
+//    PWMA_CCR1H = pwm_duties.red_duty >> 8;
+//    PWMA_CCR1L = pwm_duties.red_duty;
 
-    PWMA_CCR2H = pwm_duties.green_duty >> 8;
-    PWMA_CCR2L = pwm_duties.green_duty;
+//    PWMA_CCR2H = pwm_duties.green_duty >> 8;
+//    PWMA_CCR2L = pwm_duties.green_duty;
 
-    PWMA_CCR3H = pwm_duties.blue_duty >> 8;
-    PWMA_CCR3L = pwm_duties.blue_duty;
+//    PWMA_CCR3H = pwm_duties.blue_duty >> 8;
+//    PWMA_CCR3L = pwm_duties.blue_duty;
 
-    // 更新刹车灯PWM
-    PWMB_CCR1H = pwm_duties.brake_duty >> 8;
-    PWMB_CCR1L = pwm_duties.brake_duty;
+//    // 更新刹车灯PWM
+//    PWMB_CCR1H = pwm_duties.brake_duty >> 8;
+//    PWMB_CCR1L = pwm_duties.brake_duty;
 }
 
 //========================================================================
@@ -708,17 +728,17 @@ void Update_PWM_Outputs(void) {
 void Audio_FFT_Process(u16 *samples) {
     // 简化的FFT处理 (实际项目中需要完整的FFT算法)
     // 这里只是示例，实现基本的频谱分析
-    for(u8 i = 0; i < 8; i++) {
-        u32 sum = 0;
-        u8 start = i * (ADC_SAMPLE_COUNT / 8);
-        u8 end = (i + 1) * (ADC_SAMPLE_COUNT / 8);
+//    for(u8 i = 0; i < 8; i++) {
+//        u32 sum = 0;
+//        u8 start = i * (ADC_SAMPLE_COUNT / 8);
+//        u8 end = (i + 1) * (ADC_SAMPLE_COUNT / 8);
 
-        for(u8 j = start; j < end; j++) {
-            sum += samples[j];
-        }
+//        for(u8 j = start; j < end; j++) {
+//            sum += samples[j];
+//        }
 
-        frequency_bands[i] = (u8)(sum / (ADC_SAMPLE_COUNT / 8) >> 4);
-    }
+//        frequency_bands[i] = (u8)(sum / (ADC_SAMPLE_COUNT / 8) >> 4);
+//    }
 }
 
 void Calculate_Frequency_Bands(void) {
@@ -728,7 +748,8 @@ void Calculate_Frequency_Bands(void) {
 void Adjust_Global_Brightness(void) {
     // 根据音频强度调整全局亮度
     u8 max_intensity = 0;
-    for(u8 i = 0; i < 8; i++) {
+	  u8 i;
+    for( i = 0; i < 8; i++) {
         if(frequency_bands[i] > max_intensity) {
             max_intensity = frequency_bands[i];
         }
@@ -739,7 +760,7 @@ void Adjust_Global_Brightness(void) {
         u8 brightness = 50 + (max_intensity / 5); // 基础亮度 + 音频影响
         if(brightness > 150) brightness = 150;
 
-        for(u8 i = 0; i < WS2812_COUNT; i++) {
+        for( i = 0; i < WS2812_COUNT; i++) {
             led_colors[i].r = brightness;
             led_colors[i].g = brightness;
             led_colors[i].b = brightness;
@@ -798,11 +819,13 @@ RGB_COLOR HSV_to_RGB(u16 h, u8 s, u8 v) {
 }
 
 void Check_Mode_Timeouts(void) {
-    for(u8 i = 0; i < active_mode_count; i++) {
+		u8 i;
+		u8 timeout;
+    for( i = 0; i < active_mode_count; i++) {
         LIGHT_MODE mode = active_modes[i];
         mode_timers[i]++;
 
-        u8 timeout = 0;
+        timeout = 0;
         switch(mode) {
             case LIGHT_TURN_LEFT:
             case LIGHT_TURN_RIGHT:
