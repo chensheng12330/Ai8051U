@@ -73,10 +73,10 @@ typedef struct {
 
 // 传感器数据结构体
 typedef struct {
-    s16 accel_x, accel_y, accel_z;    // 加速度计数据
-    u16 light_level;                  // 环境光强度
-    u16 audio_level;                  // 音频电平
-    u16 battery_voltage;              // 电瓶电压
+  int16 accel_x, accel_y, accel_z; // 加速度计数据
+  u16 light_level;                 // 环境光强度
+  u16 audio_level;                 // 音频电平
+  u16 battery_voltage;             // 电瓶电压
 } SENSOR_DATA;
 
 // PWM占空比结构体
