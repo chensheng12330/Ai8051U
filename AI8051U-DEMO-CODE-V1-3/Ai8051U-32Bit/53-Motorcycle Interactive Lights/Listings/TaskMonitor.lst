@@ -1,0 +1,339 @@
+C251 COMPILER V5.60.0,  TaskMonitor                                                        10/11/25  23:57:47  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE TaskMonitor
+OBJECT MODULE PLACED IN .\Objects\TaskMonitor.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE TaskMonitor\TaskMonitor.c XSMALL INTR2 BROWSE INCDIR(.\Sources\inc) DE
+                    -BUG PRINT(.\Listings\TaskMonitor.lst) TABS(2) OBJECT(.\Objects\TaskMonitor.obj) 
+
+stmt  level    source
+
+    1          /*============================================================================*/
+    2          /*                      任务监控插件 - 实现文件                                */
+    3          /*============================================================================*/
+    4          
+    5          #include "TaskMonitor.h"
+    6          
+    7          //========================================================================
+    8          //                          本地变量
+    9          //========================================================================
+   10          
+   11          // 监控数据数组
+   12          static TASK_MONITOR_DATA monitor_data[TASK_MONITOR_MAX_TASKS];
+   13          
+   14          #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_TIME)
+               // 开始时间记录（每个任务）
+               static u16 task_start_time[TASK_MONITOR_MAX_TASKS];
+               #endif
+   18          
+   19          #if ENABLE_SAMPLE_MONITOR
+               // 采样计数器
+               static u8 sample_counter = 0;
+               #endif
+   23          
+   24          //========================================================================
+   25          //                          内部函数
+   26          //========================================================================
+   27          
+   28          // 读取Timer0当前值
+   29          static u16 ReadTimer0(void)
+   30          {
+   31   1      #if (TASK_MONITOR_TIME_SOURCE == TIME_SOURCE_TIMER0)
+   32   1          // 读取Timer0计数器（需要原子操作）
+   33   1          u8 th, tl;
+   34   1          
+   35   1          // 读取两次确保一致性
+   36   1          do {
+   37   2              th = TH0;
+   38   2              tl = TL0;
+   39   2          } while(th != TH0);
+   40   1          
+   41   1          return ((u16)th << 8) | tl;
+   42   1      #else
+                   return 0;
+               #endif
+   45   1      }
+   46          
+   47          //========================================================================
+   48          // 函数: TaskMonitor_Init
+   49          // 描述: 初始化任务监控插件
+   50          //========================================================================
+   51          void TaskMonitor_Init(void)
+   52          {
+   53   1          u8 i;
+   54   1          
+   55   1          // 清零所有监控数据
+   56   1          for(i=0; i<TASK_MONITOR_MAX_TASKS; i++)
+   57   1          {
+   58   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_BASIC)
+C251 COMPILER V5.60.0,  TaskMonitor                                                        10/11/25  23:57:47  PAGE 2   
+
+   59   2              monitor_data[i].exec_count = 0;
+   60   2      #endif
+   61   2      
+   62   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_TIME)
+                       monitor_data[i].exec_time = 0;
+                       monitor_data[i].max_exec_time = 0;
+                       task_start_time[i] = 0;
+               #endif
+   67   2      
+   68   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_FULL)
+                       monitor_data[i].timeout_count = 0;
+                       monitor_data[i].period = 0;
+               #endif
+   72   2          }
+   73   1          
+   74   1      #if ENABLE_MONITOR_DEBUG
+                   MONITOR_PRINTF("TaskMonitor initialized, Level=%d\r\n", TASK_MONITOR_LEVEL);
+               #endif
+   77   1      }
+   78          
+   79          //========================================================================
+   80          // 函数: TaskMonitor_TaskStart
+   81          // 描述: 任务开始钩子（在任务执行前调用）
+   82          // 参数: task_id - 任务ID (0-9)
+   83          //========================================================================
+   84          void TaskMonitor_TaskStart(u8 task_id)
+   85          {
+   86   1      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_TIME)
+                   if(task_id < TASK_MONITOR_MAX_TASKS)
+                   {
+               #if ENABLE_SAMPLE_MONITOR
+                       // 采样监控：每N次监控一次
+                       if(sample_counter == 0)
+                       {
+                           task_start_time[task_id] = ReadTimer0();
+                       }
+               #else
+                       // 每次都监控
+                       task_start_time[task_id] = ReadTimer0();
+               #endif
+                   }
+               #endif
+  101   1      }
+*** WARNING C47 IN LINE 84 OF TaskMonitor\TaskMonitor.c: 'task_id': unreferenced parameter
+  102          
+  103          //========================================================================
+  104          // 函数: TaskMonitor_TaskEnd
+  105          // 描述: 任务结束钩子（在任务执行后调用）
+  106          // 参数: task_id - 任务ID (0-9)
+  107          //========================================================================
+  108          void TaskMonitor_TaskEnd(u8 task_id)
+  109          {
+  110   1          if(task_id >= TASK_MONITOR_MAX_TASKS)
+  111   1              return;
+  112   1          
+  113   1      #if ENABLE_SAMPLE_MONITOR
+                   u8 do_monitor;
+                   
+                   sample_counter++;
+                   do_monitor = (sample_counter >= SAMPLE_RATE);
+                   if(do_monitor)
+                       sample_counter = 0;
+               #else
+  121   1          #define do_monitor  1  // 总是监控
+  122   1      #endif
+  123   1          
+C251 COMPILER V5.60.0,  TaskMonitor                                                        10/11/25  23:57:47  PAGE 3   
+
+  124   1          //====================================================================
+  125   1          // BASIC级别：统计执行次数
+  126   1          //====================================================================
+  127   1      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_BASIC)
+  128   1          monitor_data[task_id].exec_count++;
+  129   1      #endif
+  130   1      
+  131   1          //====================================================================
+  132   1          // TIME级别：记录执行时间
+  133   1          //====================================================================
+  134   1      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_TIME)
+                   if(do_monitor)
+                   {
+                       u16 end_time = ReadTimer0();
+                       u16 exec_time = end_time - task_start_time[task_id];
+                       
+                       monitor_data[task_id].exec_time = exec_time;
+                       
+                       // 更新最大执行时间
+                       if(exec_time > monitor_data[task_id].max_exec_time)
+                       {
+                           monitor_data[task_id].max_exec_time = exec_time;
+                       }
+                   }
+               #endif
+  149   1      
+  150   1          //====================================================================
+  151   1          // FULL级别：超时检测
+  152   1          //====================================================================
+  153   1      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_FULL)
+                   if(do_monitor && monitor_data[task_id].period > 0)
+                   {
+                       u16 exec_time = monitor_data[task_id].exec_time;
+                       u16 threshold = monitor_data[task_id].period * TASK_MONITOR_TIMEOUT_THRESHOLD / 100;
+                       
+                       if(exec_time > threshold)
+                       {
+                           monitor_data[task_id].timeout_count++;
+                           
+               #if ENABLE_TIMEOUT_WARNING
+                           MONITOR_PRINTF("WARN: Task%d timeout! %u/%u us\r\n", 
+                                         task_id, exec_time, monitor_data[task_id].period);
+               #endif
+                       }
+                   }
+               #endif
+  170   1      
+  171   1      #if ENABLE_SAMPLE_MONITOR
+                   #undef do_monitor
+               #endif
+  174   1      }
+  175          
+  176          //========================================================================
+  177          // 函数: TaskMonitor_SetPeriod
+  178          // 描述: 设置任务周期（用于超时检测）
+  179          //========================================================================
+  180          void TaskMonitor_SetPeriod(u8 task_id, u16 period_ms)
+  181          {
+  182   1      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_FULL)
+                   if(task_id < TASK_MONITOR_MAX_TASKS)
+                   {
+                       monitor_data[task_id].period = period_ms;
+                   }
+               #endif
+  188   1      }
+*** WARNING C47 IN LINE 180 OF TaskMonitor\TaskMonitor.c: 'task_id': unreferenced parameter
+C251 COMPILER V5.60.0,  TaskMonitor                                                        10/11/25  23:57:47  PAGE 4   
+
+*** WARNING C47 IN LINE 180 OF TaskMonitor\TaskMonitor.c: 'period_ms': unreferenced parameter
+  189          
+  190          //========================================================================
+  191          // 函数: TaskMonitor_GetData
+  192          // 描述: 获取任务的监控数据
+  193          //========================================================================
+  194          TASK_MONITOR_DATA* TaskMonitor_GetData(u8 task_id)
+  195          {
+  196   1          if(task_id < TASK_MONITOR_MAX_TASKS)
+  197   1          {
+  198   2              return &monitor_data[task_id];
+  199   2          }
+  200   1          return (TASK_MONITOR_DATA*)0;
+  201   1      }
+  202          
+  203          //========================================================================
+  204          // 函数: TaskMonitor_Reset
+  205          // 描述: 重置指定任务的监控数据
+  206          //========================================================================
+  207          void TaskMonitor_Reset(u8 task_id)
+  208          {
+  209   1          if(task_id < TASK_MONITOR_MAX_TASKS)
+  210   1          {
+  211   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_BASIC)
+  212   2              monitor_data[task_id].exec_count = 0;
+  213   2      #endif
+  214   2      
+  215   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_TIME)
+                       monitor_data[task_id].exec_time = 0;
+                       monitor_data[task_id].max_exec_time = 0;
+               #endif
+  219   2      
+  220   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_FULL)
+                       monitor_data[task_id].timeout_count = 0;
+               #endif
+  223   2          }
+  224   1      }
+  225          
+  226          //========================================================================
+  227          // 函数: TaskMonitor_ResetAll
+  228          // 描述: 重置所有任务的监控数据
+  229          //========================================================================
+  230          void TaskMonitor_ResetAll(void)
+  231          {
+  232   1          u8 i;
+  233   1          for(i=0; i<TASK_MONITOR_MAX_TASKS; i++)
+  234   1          {
+  235   2              TaskMonitor_Reset(i);
+  236   2          }
+  237   1      }
+  238          
+  239          //========================================================================
+  240          // 函数: TaskMonitor_PrintReport
+  241          // 描述: 打印性能报告
+  242          //========================================================================
+  243          void TaskMonitor_PrintReport(void)
+  244          {
+  245   1      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_BASIC)
+  246   1          u8 i;
+  247   1          
+  248   1          MONITOR_PRINTF("\r\n=== Task Performance Report ===\r\n");
+  249   1          
+  250   1          for(i=0; i<TASK_MONITOR_MAX_TASKS; i++)
+  251   1          {
+  252   2              // 跳过从未执行的任务
+  253   2              if(monitor_data[i].exec_count == 0)
+C251 COMPILER V5.60.0,  TaskMonitor                                                        10/11/25  23:57:47  PAGE 5   
+
+  254   2                  continue;
+  255   2              
+  256   2              MONITOR_PRINTF("Task%d: ", i);
+  257   2              
+  258   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_BASIC)
+  259   2              MONITOR_PRINTF("Count=%lu", monitor_data[i].exec_count);
+  260   2      #endif
+  261   2      
+  262   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_TIME)
+                       MONITOR_PRINTF(", Last=%uus, Max=%uus", 
+                                     monitor_data[i].exec_time,
+                                     monitor_data[i].max_exec_time);
+               #endif
+  267   2      
+  268   2      #if (TASK_MONITOR_LEVEL >= TASK_MONITOR_FULL)
+                       if(monitor_data[i].period > 0)
+                       {
+                           u16 duty = monitor_data[i].max_exec_time * 100 / monitor_data[i].period;
+                           MONITOR_PRINTF(", Duty=%u%%, Timeout=%u", 
+                                         duty,
+                                         monitor_data[i].timeout_count);
+                       }
+               #endif
+  277   2              
+  278   2              MONITOR_PRINTF("\r\n");
+  279   2          }
+  280   1          
+  281   1          MONITOR_PRINTF("===============================\r\n");
+  282   1      #endif
+  283   1      }
+  284          
+  285          //========================================================================
+  286          // 函数: TaskMonitor_GetVersion
+  287          // 描述: 获取插件版本号
+  288          //========================================================================
+  289          const char* TaskMonitor_GetVersion(void)
+  290          {
+  291   1          return "TaskMonitor v1.0.0";
+  292   1      }
+  293          
+*** WARNING C174 IN LINE 29 OF TaskMonitor\TaskMonitor.c: 'ReadTimer0': unreferenced 'static' function
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       259     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =        40     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =       111     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  4 WARNING(S),  0 ERROR(S)

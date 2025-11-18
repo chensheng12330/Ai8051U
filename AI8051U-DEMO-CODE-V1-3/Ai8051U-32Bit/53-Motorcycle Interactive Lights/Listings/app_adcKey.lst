@@ -1,0 +1,206 @@
+C251 COMPILER V5.60.0,  app_adcKey                                                         10/11/25  23:53:16  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE app_adcKey
+OBJECT MODULE PLACED IN .\Objects\app_adcKey.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE Sources\src\app_adcKey.c XSMALL INTR2 BROWSE INCDIR(.\Sources\inc) DEB
+                    -UG PRINT(.\Listings\app_adcKey.lst) TABS(2) OBJECT(.\Objects\app_adcKey.obj) 
+
+stmt  level    source
+
+    1          /*---------------------------------------------------------------------*/
+    2          /* --- Web: www.STCAI.com ---------------------------------------------*/
+    3          /*---------------------------------------------------------------------*/
+    4          
+    5          #include "adc.h"
+    6          #include "app_rtc.h"
+    7          #include "app_adcKey.h"
+    8          
+    9          /*************** 功能说明 ****************
+   10          
+   11          ADC按键键码为1~16.
+   12          
+   13          按键只支持单键按下, 不支持多键同时按下, 那样将会有不可预知的结果.
+   14          
+   15          键按下超过1秒后,将以10键/秒的速度提供重键输出. 用户只需要检测adcKeyCode是否�
+             -��0来判断键是否按下.
+   16          
+   17          调整时间键:
+   18          键码1: 小时+.
+   19          键码2: 小时-.
+   20          键码3: 分钟+.
+   21          键码4: 分钟-.
+   22          
+   23          ******************************************/
+   24          
+   25          
+   26          //========================================================================
+   27          //                               本地常量声明    
+   28          //========================================================================
+   29          
+   30          
+   31          //========================================================================
+   32          //                               本地变量声明
+   33          //========================================================================
+   34          
+   35          u8  ADC_KeyState,ADC_KeyState1,ADC_KeyState2,ADC_KeyState3; //键状态
+   36          u8  ADC_KeyHoldCnt; //键按下计时
+   37          u8  adcKeyCode;    //给用户使用的键码, 1~16有效
+   38          
+   39          //========================================================================
+   40          //                               本地函数声明
+   41          //========================================================================
+   42          
+   43          void CalculateAdcKey(u16 adc);
+   44          
+   45          //========================================================================
+   46          //                            外部函数和变量声明
+   47          //========================================================================
+   48          
+   49          
+   50          //========================================================================
+   51          // 函数: adcKey_init
+   52          // 描述: 用户初始化程序.
+   53          // 参数: None.
+   54          // 返回: None.
+   55          // 版本: V1.0, 2022-05-26
+   56          //========================================================================
+   57          void adcKey_init(void)
+C251 COMPILER V5.60.0,  app_adcKey                                                         10/11/25  23:53:16  PAGE 2   
+
+   58          {
+   59   1          ADC_KeyState  = 0;
+   60   1          ADC_KeyState1 = 0;
+   61   1          ADC_KeyState2 = 0;
+   62   1          ADC_KeyState3 = 0;  //键状态
+   63   1          ADC_KeyHoldCnt = 0; //键按下计时
+   64   1          adcKeyCode = 0;    //给用户使用的键码, 1~16有效
+   65   1      }
+   66          
+   67          //========================================================================
+   68          // 函数: Sample_adcKey
+   69          // 描述: 用户应用程序.
+   70          // 参数: None.
+   71          // 返回: None.
+   72          // 版本: V1.0, 2022-05-26
+   73          //========================================================================
+   74          void Sample_adcKey(void)
+   75          {
+   76   1          u16 j;
+   77   1      
+   78   1          j = Get_ADC12bitResult(0);  //参数0~15,查询方式做一次ADC, 返回值就是结果, == 4096 为
+             -错误
+   79   1          if(j < 4096)    CalculateAdcKey(j); //计算按键
+   80   1      
+   81   1          if(adcKeyCode > 0)     //有键按下
+   82   1          {
+   83   2              if(adcKeyCode == 1)    //usrHour +1
+   84   2              {
+   85   3                  if(++usrHour >= 24)    usrHour = 0;
+   86   3                  DisplayRTC();
+   87   3              }
+   88   2              if(adcKeyCode == 2)    //usrHour -1
+   89   2              {
+   90   3                  if(--usrHour >= 24)    usrHour = 23;
+   91   3                  DisplayRTC();
+   92   3              }
+   93   2              if(adcKeyCode == 3)    //usrMinute +1
+   94   2              {
+   95   3                  usrSecond = 0;
+   96   3                  if(++usrMinute >= 60)  usrMinute = 0;
+   97   3                  DisplayRTC();
+   98   3              }
+   99   2              if(adcKeyCode == 4)    //usrMinute -1
+  100   2              {
+  101   3                  usrSecond = 0;
+  102   3                  if(--usrMinute >= 60)  usrMinute = 59;
+  103   3                  DisplayRTC();
+  104   3              }
+  105   2              adcKeyCode = 0;
+  106   2          }
+  107   1      }
+  108          
+  109          /***************** ADC键盘计算键码 *****************************
+  110          电路和软件算法设计: Coody
+  111          本ADC键盘方案在很多实际产品设计中, 验证了其稳定可靠, 即使按键使用导电膜,�
+             -��很可靠.
+  112          16个键,理论上各个键对应的ADC值为 (4096 / 16) * k = 256 * k, k = 1 ~ 16, 特别的, k=16时,�
+             -��应的ADC值是4095.
+  113          但是实际会有偏差,则判断时限制这个偏差, ADC_OFFSET为+-偏差, 则ADC值在 (256*k-ADC_O
+             -FFSET) 与 (256*k+ADC_OFFSET)之间为键有效.
+  114          间隔一定的时间,就采样一次ADC,比如10ms.
+  115          为了避免偶然的ADC值误判, 或者避免ADC在上升或下降时误判, 使用连续3次ADC值均�
+             -��偏差范围内时, ADC值才认为有效.
+  116          以上算法, 能保证读键非常可靠.
+  117          **********************************************/
+  118          #define ADC_OFFSET  64
+C251 COMPILER V5.60.0,  app_adcKey                                                         10/11/25  23:53:16  PAGE 3   
+
+  119          void CalculateAdcKey(u16 adc)
+  120          {
+  121   1          u8  i;
+  122   1          u16 j;
+  123   1          
+  124   1          if(adc < (256-ADC_OFFSET))
+  125   1          {
+  126   2              ADC_KeyState = 0;   //键状态归0
+  127   2              ADC_KeyHoldCnt = 0;
+  128   2          }
+  129   1          j = 256;
+  130   1          for(i=1; i<=16; i++)
+  131   1          {
+  132   2              if((adc >= (j - ADC_OFFSET)) && (adc <= (j + ADC_OFFSET)))  break;  //判断是否在偏差范围
+             -内
+  133   2              j += 256;
+  134   2          }
+  135   1          ADC_KeyState3 = ADC_KeyState2;
+  136   1          ADC_KeyState2 = ADC_KeyState1;
+  137   1          if(i > 16)  ADC_KeyState1 = 0;  //键无效
+  138   1          else                        //键有效
+  139   1          {
+  140   2              ADC_KeyState1 = i;
+  141   2              if((ADC_KeyState3 == ADC_KeyState2) && (ADC_KeyState2 == ADC_KeyState1) &&
+  142   2                 (ADC_KeyState3 > 0) && (ADC_KeyState2 > 0) && (ADC_KeyState1 > 0))
+  143   2              {
+  144   3                  if(ADC_KeyState == 0)   //第一次检测到
+  145   3                  {
+  146   4                      adcKeyCode  = i;    //保存键码
+  147   4                      ADC_KeyState = i;   //保存键状态
+  148   4                      ADC_KeyHoldCnt = 0;
+  149   4                  }
+  150   3                  if(ADC_KeyState == i)   //连续检测到同一键按着
+  151   3                  {
+  152   4                      if(++ADC_KeyHoldCnt >= 100) //按下1秒后,以10次每秒的速度Repeat Key
+  153   4                      {
+  154   5                          ADC_KeyHoldCnt = 90;
+  155   5                          adcKeyCode  = i; //保存键码
+  156   5                      }
+  157   4                  }
+  158   3                  else ADC_KeyHoldCnt = 0; //按下时间计数归0
+  159   3              }
+  160   2          }
+  161   1      }
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       362     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =         6     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =    ------     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

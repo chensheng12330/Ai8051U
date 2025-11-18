@@ -1,6 +1,7 @@
 #ifndef __TASK_MONITOR_H_
 #define __TASK_MONITOR_H_
 
+#include "config.h"
 /*============================================================================*/
 /*                      任务监控插件 - 独立模块                                */
 /*============================================================================*/
@@ -24,11 +25,20 @@
 //========================================================================
 
 // 基础类型（如果项目没有，使用标准类型）
-#ifndef _TYPE_DEF_DEFINED_
-typedef unsigned char   u8;
-typedef unsigned int    u16;
-typedef unsigned long   u32;
-#endif
+//#ifndef u8
+//typedef unsigned char   u8;
+//#endif
+
+//#ifndef u16
+//typedef unsigned int    u16;
+//#endif
+
+//#ifndef u32
+//typedef unsigned long   u32;
+//#endif
+
+
+
 
 //========================================================================
 //                            监控级别定义

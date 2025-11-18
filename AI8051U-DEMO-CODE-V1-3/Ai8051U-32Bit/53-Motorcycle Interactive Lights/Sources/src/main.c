@@ -4,7 +4,7 @@
 
 #include "Task.h"
 #include "System_init.h"
-#include "../USBHID/usb.h"
+#include "../comm/usb.h"
 
 //========================================================================
 // 集成独立监控插件（可选）

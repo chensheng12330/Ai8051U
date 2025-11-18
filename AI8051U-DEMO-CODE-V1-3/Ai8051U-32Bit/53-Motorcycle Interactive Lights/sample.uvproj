@@ -339,16 +339,6 @@
               <FileType>1</FileType>
               <FilePath>.\Sources\src\System_init.c</FilePath>
             </File>
-            <File>
-              <FileName>功能说明.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\功能说明.txt</FilePath>
-            </File>
-            <File>
-              <FileName>usb_hid_32.LIB</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\USBHID\usb_hid_32.LIB</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -385,19 +375,29 @@
               <FilePath>.\Sources\src\app_display.c</FilePath>
             </File>
             <File>
-              <FileName>app_MatrixKey.c</FileName>
+              <FileName>app_intKey.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Sources\src\app_MatrixKey.c</FilePath>
+              <FilePath>.\Sources\src\app_intKey.c</FilePath>
             </File>
             <File>
-              <FileName>app_ntc.c</FileName>
+              <FileName>motorcycle_light_system.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Sources\src\app_ntc.c</FilePath>
+              <FilePath>.\Sources\src\motorcycle_light_system.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>tool</GroupName>
+          <Files>
+            <File>
+              <FileName>TaskMonitor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\TaskMonitor\TaskMonitor.c</FilePath>
             </File>
             <File>
-              <FileName>app_rtc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Sources\src\app_rtc.c</FilePath>
+              <FileName>usb_hid_32.LIB</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\COMM\usb_hid_32.LIB</FilePath>
             </File>
           </Files>
         </Group>

@@ -21,13 +21,13 @@
 #define INT2_FLAG       INT2IF
 #define INT3_FLAG       INT3IF
 
-// DMA完成标志
-#define DMA_SPI_DONE    DMA_SPI_CR & 0x80  // SPI DMA完成标志
-#define DMA_ADC_DONE    DMA_ADC_CR & 0x80  // ADC DMA完成标志
+//// DMA完成标志
+//#define DMA_SPI_DONE    DMA_SPI_CR & 0x80  // SPI DMA完成标志
+//#define DMA_ADC_DONE    DMA_ADC_CR & 0x80  // ADC DMA完成标志
 
-// DMA中断向量
-#define DMA_SPI_VECTOR  32  // SPI DMA中断向量
-#define DMA_ADC_VECTOR  33  // ADC DMA中断向量
+//// DMA中断向量
+//#define DMA_SPI_VECTOR  32  // SPI DMA中断向量
+//#define DMA_ADC_VECTOR  33  // ADC DMA中断向量
 
 // 硬件配置
 #define WS2812_COUNT        90      // WS2812灯珠数量
@@ -73,10 +73,10 @@ typedef struct {
 
 // 传感器数据结构体
 typedef struct {
-  int16 accel_x, accel_y, accel_z; // 加速度计数据
-  u16 light_level;                 // 环境光强度
-  u16 audio_level;                 // 音频电平
-  u16 battery_voltage;             // 电瓶电压
+    int16 accel_x, accel_y, accel_z;    // 加速度计数据
+    u16 light_level;                  // 环境光强度
+    u16 audio_level;                  // 音频电平
+    u16 battery_voltage;              // 电瓶电压
 } SENSOR_DATA;
 
 // PWM占空比结构体

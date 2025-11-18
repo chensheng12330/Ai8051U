@@ -11,6 +11,7 @@ typedef unsigned long   u32;    // 32 bits
 
 typedef signed char     int8;   //  8 bits 
 typedef signed int      int16;  // 16 bits 
+typedef signed int      s16;  // 16 bits 
 typedef signed long     int32;  // 32 bits 
 
 typedef unsigned char   uint8;  //  8 bits 

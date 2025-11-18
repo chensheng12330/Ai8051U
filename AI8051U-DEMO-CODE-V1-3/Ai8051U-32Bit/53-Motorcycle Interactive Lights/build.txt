@@ -1,0 +1,82 @@
+compiling motorcycle_light_system.c...
+Sources\src\motorcycle_light_system.c(288): error C25: syntax error near 'LIGHT_MODE'
+Sources\src\motorcycle_light_system.c(289): error C76: formal parameter ignored
+Sources\src\motorcycle_light_system.c(289): error C25: syntax error near '0'
+Sources\src\motorcycle_light_system.c(289): error C53: redefinition of 'Set_Light_Mode': different return types
+Sources\src\motorcycle_light_system.c(290): error C76: formal parameter ignored
+Sources\src\motorcycle_light_system.c(290): error C25: syntax error near '1'
+Sources\src\motorcycle_light_system.c(290): error C53: redefinition of 'Set_Light_Mode': different return types
+Sources\src\motorcycle_light_system.c(291): error C25: syntax error near '}'
+Sources\src\motorcycle_light_system.c(348): warning C140: 'Calculate_Brake_Effect' undefined; assuming 'extern int Calculate_Brake_Effect()'
+Sources\src\motorcycle_light_system.c(351): warning C140: 'Calculate_Turn_Left_Effect' undefined; assuming 'extern int Calculate_Turn_Left_Effect()'
+Sources\src\motorcycle_light_system.c(354): warning C140: 'Calculate_Turn_Right_Effect' undefined; assuming 'extern int Calculate_Turn_Right_Effect()'
+Sources\src\motorcycle_light_system.c(357): warning C140: 'Calculate_Music_Sync_Effect' undefined; assuming 'extern int Calculate_Music_Sync_Effect()'
+Sources\src\motorcycle_light_system.c(360): warning C140: 'Calculate_Position_Effect' undefined; assuming 'extern int Calculate_Position_Effect()'
+Sources\src\motorcycle_light_system.c(363): warning C140: 'Calculate_Ambient_Effect' undefined; assuming 'extern int Calculate_Ambient_Effect()'
+Sources\src\motorcycle_light_system.c(387): warning C140: 'Adjust_Global_Brightness' undefined; assuming 'extern int Adjust_Global_Brightness()'
+Sources\src\motorcycle_light_system.c(401): error C67: 'P1_7': undefined identifier
+Sources\src\motorcycle_light_system.c(401): error C67: 'P1_7': undefined identifier
+Sources\src\motorcycle_light_system.c(408): error C67: 'P1_7': undefined identifier
+Sources\src\motorcycle_light_system.c(408): error C67: 'P1_7': undefined identifier
+Sources\src\motorcycle_light_system.c(415): error C67: 'P1_6': undefined identifier
+Sources\src\motorcycle_light_system.c(415): error C67: 'P1_6': undefined identifier
+Sources\src\motorcycle_light_system.c(422): error C67: 'P1_6': undefined identifier
+Sources\src\motorcycle_light_system.c(422): error C67: 'P1_6': undefined identifier
+Sources\src\motorcycle_light_system.c(423): error C67: 'P1_7': undefined identifier
+Sources\src\motorcycle_light_system.c(423): error C67: 'P1_7': undefined identifier
+Sources\src\motorcycle_light_system.c(528): error C25: syntax error near 'u8'
+Sources\src\motorcycle_light_system.c(528): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(528): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(529): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(530): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(531): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(538): error C25: syntax error near 'u8'
+Sources\src\motorcycle_light_system.c(538): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(538): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(539): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(540): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(541): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(560): error C25: syntax error near 'u8'
+Sources\src\motorcycle_light_system.c(560): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(560): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(561): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(562): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(563): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(596): error C53: redefinition of 'Calculate_Brake_Effect': different return types
+Sources\src\motorcycle_light_system.c(601): error C53: redefinition of 'Calculate_Turn_Left_Effect': different return types
+Sources\src\motorcycle_light_system.c(606): error C25: syntax error near 'u8'
+Sources\src\motorcycle_light_system.c(606): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(606): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(607): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(607): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(608): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(609): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(610): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(612): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(613): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(614): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(619): error C53: redefinition of 'Calculate_Turn_Right_Effect': different return types
+Sources\src\motorcycle_light_system.c(624): error C25: syntax error near 'u8'
+Sources\src\motorcycle_light_system.c(624): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(624): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(625): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(626): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(627): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(628): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(629): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(631): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(632): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(633): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(638): error C53: redefinition of 'Calculate_Position_Effect': different return types
+Sources\src\motorcycle_light_system.c(642): error C53: redefinition of 'Calculate_Music_Sync_Effect': different return types
+Sources\src\motorcycle_light_system.c(644): error C25: syntax error near 'u8'
+Sources\src\motorcycle_light_system.c(644): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(644): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(645): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(649): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(650): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(651): error C67: 'i': undefined identifier
+Sources\src\motorcycle_light_system.c(655): error C53: redefinition of 'Calculate_Ambient_Effect': different return types
+Sources\src\motorcycle_light_system.c(660): error C25: syntax error near 'u8'
+Sources\src\motorcycle_light_system.c(660): error C7: compilation aborted
+Sources\src\motorcycle_light_system.c - 73 Error(s), 7 Warning(s).
