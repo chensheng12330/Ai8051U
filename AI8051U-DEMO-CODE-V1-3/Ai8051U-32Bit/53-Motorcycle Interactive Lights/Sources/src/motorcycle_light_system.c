@@ -272,6 +272,7 @@ void Sample_WS2812_DMA_Control(void)
 // 任务3: 按键处理 (5ms, 优先级1)
 void Sample_Button_Process(void)
 {
+		LIGHT_MODE next_mode;
     // 检查INT2 (测试按键 P3.6)
     if(INT2_FLAG) {
         INT2_FLAG = 0;
@@ -285,7 +286,7 @@ void Sample_Button_Process(void)
         INT3_FLAG = 0;
         printf("[BUTTON] Menu button pressed\n");
         // 循环切换模式
-        LIGHT_MODE next_mode = (current_mode + 1) % 8;
+				next_mode = (LIGHT_MODE)((current_mode + 1) % 8);
         Set_Light_Mode(current_mode, 0); // 关闭当前模式
         Set_Light_Mode(next_mode, 1);    // 开启下一模式
     }
@@ -398,29 +399,29 @@ void Sample_Status_Display(void)
         case SYS_NORMAL:
             // 正常运行：蓝色LED慢闪
             if(status_timer % 1000 == 0) { // 1秒周期
-                P1_7 = !P1_7; // 蓝色LED
+                P17 = !P17; // 蓝色LED
             }
             break;
 
         case SYS_LOW_POWER:
             // 低功耗：蓝色LED快闪
             if(status_timer % 200 == 0) { // 200ms周期
-                P1_7 = !P1_7;
+                P17 = !P17;
             }
             break;
 
         case SYS_ERROR:
             // 错误状态：红色LED快闪
             if(status_timer % 200 == 0) {
-                P1_6 = !P1_6; // 红色LED
+                P16 = !P16; // 红色LED
             }
             break;
 
         case SYS_TEST_MODE:
             // 测试模式：双色交替闪烁
             if(status_timer % 300 == 0) {
-                P1_6 = !P1_6;
-                P1_7 = !P1_7;
+                P16 = !P16;
+                P17 = !P17;
             }
             break;
 
@@ -511,8 +512,8 @@ void Set_Light_Mode(LIGHT_MODE new_mode, u8 enable) {
 }
 
 void Apply_Light_Effect(LIGHT_MODE mode) {
+	u8 i = 0;
     printf("[LIGHT] Applying effect for mode %d\n", mode);
-
     switch(mode) {
         case LIGHT_OFF:
             // 关闭所有灯效
@@ -525,7 +526,8 @@ void Apply_Light_Effect(LIGHT_MODE mode) {
 
         case LIGHT_POSITION:
             // 位置灯：低亮度白色
-            for(u8 i = 0; i < WS2812_COUNT; i++) {
+            for (i = 0; i < WS2812_COUNT; i++)
+            {
                 led_colors[i].r = 50;
                 led_colors[i].g = 50;
                 led_colors[i].b = 50;
@@ -535,7 +537,8 @@ void Apply_Light_Effect(LIGHT_MODE mode) {
 
         case LIGHT_BRAKE:
             // 刹车：红色高亮
-            for(u8 i = 0; i < WS2812_COUNT; i++) {
+            for (i = 0; i < WS2812_COUNT; i++)
+            {
                 led_colors[i].r = 255;
                 led_colors[i].g = 0;
                 led_colors[i].b = 0;
@@ -557,7 +560,8 @@ void Apply_Light_Effect(LIGHT_MODE mode) {
         case LIGHT_HIGH_BEAM:
             // 远光灯：增强亮度
             // 基础位置灯亮度提升
-            for(u8 i = 0; i < WS2812_COUNT; i++) {
+            for (i = 0; i < WS2812_COUNT; i++)
+            {
                 led_colors[i].r = 150;
                 led_colors[i].g = 150;
                 led_colors[i].b = 150;
@@ -600,10 +604,11 @@ void Calculate_Brake_Effect(void) {
 
 void Calculate_Turn_Left_Effect(void) {
     static u8 phase = 0;
+    u8 i = 0;
     phase = (phase + 1) % 10;
 
     // 左侧灯珠流水效果 (假设0-44为左侧)
-    for(u8 i = 0; i < WS2812_COUNT/2; i++) {
+    for(i = 0; i < WS2812_COUNT/2; i++) {
         if(i >= phase * 4.4 && i < (phase + 1) * 4.4) {
             led_colors[i].r = 255;
             led_colors[i].g = 255;
@@ -618,10 +623,11 @@ void Calculate_Turn_Left_Effect(void) {
 
 void Calculate_Turn_Right_Effect(void) {
     static u8 phase = 0;
+    u8 i = 0;
     phase = (phase + 1) % 10;
 
     // 右侧灯珠流水效果 (假设45-89为右侧)
-    for(u8 i = WS2812_COUNT/2; i < WS2812_COUNT; i++) {
+    for(i = WS2812_COUNT/2; i < WS2812_COUNT; i++) {
         if(i >= WS2812_COUNT/2 + phase * 4.4 &&
            i < WS2812_COUNT/2 + (phase + 1) * 4.4) {
             led_colors[i].r = 255;
@@ -641,7 +647,8 @@ void Calculate_Position_Effect(void) {
 
 void Calculate_Music_Sync_Effect(void) {
     // 根据频谱数据设置灯效
-    for(u8 i = 0; i < WS2812_COUNT; i++) {
+	u8 i;
+    for(i = 0; i < WS2812_COUNT; i++) {
         u8 band = i % 8;
         u8 intensity = frequency_bands[band];
 
@@ -655,9 +662,10 @@ void Calculate_Music_Sync_Effect(void) {
 void Calculate_Ambient_Effect(void) {
     // 根据环境光强调整亮度
     u8 brightness;
-		brightness= 255 - (sensor_data.light_level / 16); // 反比关系
+	u8 i = 0;
+	brightness= 255 - (sensor_data.light_level / 16); // 反比关系
 
-    for(u8 i = 0; i < WS2812_COUNT; i++) {
+    for(i = 0; i < WS2812_COUNT; i++) {
         led_colors[i].r = brightness;
         led_colors[i].g = brightness;
         led_colors[i].b = brightness;
@@ -685,9 +693,11 @@ void WS2812_Send_DMA(void) {
 void WS2812_Encode_Buffer(void) {
     u8 *p = ws2812_buffer;
 		u8 i,j,k;
+	  u8 colors[3];
+	
     for( i = 0; i < WS2812_COUNT; i++) {
         // GRB顺序 (WS2812标准)
-        u8 colors[3] = {led_colors[i].g, led_colors[i].r, led_colors[i].b};
+        //colors[3] = {led_colors[i].g, led_colors[i].r, led_colors[i].b};
 
         for( j = 0; j < 3; j++) {
             for( k = 0; k < 8; k++) {
@@ -725,10 +735,10 @@ void Update_PWM_Outputs(void) {
 //                               音频处理函数
 //========================================================================
 
-void Audio_FFT_Process(u16 *samples) {
+//void Audio_FFT_Process(void) { //u16 *samples
     // 简化的FFT处理 (实际项目中需要完整的FFT算法)
     // 这里只是示例，实现基本的频谱分析
-//    for(u8 i = 0; i < 8; i++) {
+//    for(i = 0; i < 8; i++) {
 //        u32 sum = 0;
 //        u8 start = i * (ADC_SAMPLE_COUNT / 8);
 //        u8 end = (i + 1) * (ADC_SAMPLE_COUNT / 8);
@@ -739,7 +749,7 @@ void Audio_FFT_Process(u16 *samples) {
 
 //        frequency_bands[i] = (u8)(sum / (ADC_SAMPLE_COUNT / 8) >> 4);
 //    }
-}
+//}
 
 void Calculate_Frequency_Bands(void) {
     // 频谱计算已在Audio_FFT_Process中完成
@@ -939,11 +949,12 @@ void Print_System_Status(void) {
     printf("=====================\n");
 }
 
-void Print_Light_Status(void) {
-    printf("\n=== Light Status ===\n");
-    printf("Active Modes: %d\n", active_mode_count);
-    printf("Current Mode: %d\n", current_mode);
-    printf("WS2812 Status: OK\n");
-    printf("PWM Status: OK\n");
-    printf("===================\n");
-}
+
+//void Print_Light_Status(void) {
+//    //printf("\n=== Light Status ===\n");
+//    //printf("Active Modes: %d\n", active_mode_count);
+//    //printf("Current Mode: %d\n", current_mode);
+//    //printf("WS2812 Status: OK\n");
+//    //printf("PWM Status: OK\n");
+//    //printf("===================\n");
+//	}

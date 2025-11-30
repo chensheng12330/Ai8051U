@@ -76,7 +76,7 @@ void CPUMonitor_Calculate(void)
     // 首次调用时进行校准
     if(!calibrated)
     {
-        CPU_MONITOR_IDLE_LOOPS_PER_SEC = calibrate_loops;
+        //CPU_MONITOR_IDLE_LOOPS_PER_SEC = calibrate_loops;
         calibrated = 1;
         
 #if CPU_MONITOR_DEBUG

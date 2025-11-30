@@ -3,7 +3,7 @@
 /*---------------------------------------------------------------------*/
 
 #include "adc.h"
-#include "app_rtc.h"
+//#include "app_rtc.h"
 #include "app_adcKey.h"
 
 /*************** 功能说明 ****************
@@ -80,28 +80,28 @@ void Sample_adcKey(void)
 
     if(adcKeyCode > 0)     //有键按下
     {
-        if(adcKeyCode == 1)    //usrHour +1
-        {
-            if(++usrHour >= 24)    usrHour = 0;
-            DisplayRTC();
-        }
-        if(adcKeyCode == 2)    //usrHour -1
-        {
-            if(--usrHour >= 24)    usrHour = 23;
-            DisplayRTC();
-        }
-        if(adcKeyCode == 3)    //usrMinute +1
-        {
-            usrSecond = 0;
-            if(++usrMinute >= 60)  usrMinute = 0;
-            DisplayRTC();
-        }
-        if(adcKeyCode == 4)    //usrMinute -1
-        {
-            usrSecond = 0;
-            if(--usrMinute >= 60)  usrMinute = 59;
-            DisplayRTC();
-        }
+//        if(adcKeyCode == 1)    //usrHour +1
+//        {
+//            if(++usrHour >= 24)    usrHour = 0;
+//            DisplayRTC();
+//        }
+//        if(adcKeyCode == 2)    //usrHour -1
+//        {
+//            if(--usrHour >= 24)    usrHour = 23;
+//            DisplayRTC();
+//        }
+//        if(adcKeyCode == 3)    //usrMinute +1
+//        {
+//            usrSecond = 0;
+//            if(++usrMinute >= 60)  usrMinute = 0;
+//            DisplayRTC();
+//        }
+//        if(adcKeyCode == 4)    //usrMinute -1
+//        {
+//            usrSecond = 0;
+//            if(--usrMinute >= 60)  usrMinute = 59;
+//            DisplayRTC();
+//        }
         adcKeyCode = 0;
     }
 }

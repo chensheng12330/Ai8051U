@@ -61,8 +61,8 @@ static TASK_COMPONENTS Task_Comps[]=
     {0, 1,   1,   Sample_Display},
     {0, 10,  10,  Sample_MatrixKey},
     {0, 10,  10,  Sample_adcKey},
-    {0, 300, 300, Sample_NTC},
-    {0, 500, 500, Sample_RTC},
+    //{0, 300, 300, Sample_NTC},
+    //{0, 500, 500, Sample_RTC},
 #if ENABLE_INT_KEY
     {0, 10,  10,  Sample_intKey},
 #endif

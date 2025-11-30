@@ -209,4 +209,12 @@ void Update_PWM_Outputs(void);
 void Print_System_Status(void);
 void Print_Light_Status(void);
 
+// 其它
+void Calculate_Brake_Effect(void);
+void Calculate_Turn_Left_Effect(void);
+void Calculate_Turn_Right_Effect(void);
+void Calculate_Music_Sync_Effect(void);
+void Calculate_Position_Effect(void);
+void Calculate_Ambient_Effect(void);
+void Adjust_Global_Brightness(void);
 #endif
