@@ -13,9 +13,9 @@
 //========================================================================
 void APP_config(void)
 {
-	//Display_init();
+	Display_init();
 	//RTC_init();
-	adcKey_init();
+	//adcKey_init();
 
 #if ENABLE_INT_KEY
 	intKey_init();  // 初始化外部中断按键模块
